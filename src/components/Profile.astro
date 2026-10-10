@@ -1,0 +1,71 @@
+---
+import Img from './Img.astro';
+import { CHAIN, PRACTICE, EXPERIENCE } from '../data/site';
+---
+<section class="profile section wrap" id="profile" data-section data-track="SIDE A" data-label="PROFILE">
+  <div class="section-meta meta quiet"><span>Liner notes</span><span>Profile / 2013—Present</span></div>
+  <h2 class="statement display" style="margin-top:28px">
+    <span class="acid" data-line>I design brands</span><br />
+    <span class="dim" data-line>from the <span class="u-tape">inside out.</span></span>
+  </h2>
+
+  <div class="layout">
+    <figure class="portrait" style="margin:0" data-parallax="-6">
+      <Img id="profile-portrait" alt="Portrait of Ahmed Ibrahim with his monogram drawn in acid line" sizes="(max-width: 760px) 78vw, 34vw" />
+    </figure>
+    <div class="copy">
+      <div class="years" data-reveal>
+        <span class="big">13+</span>
+        <span class="meta">Years in design practice<br /><span class="quiet">2013—Present</span></span>
+      </div>
+      <p class="body" data-reveal>
+        Ahmed Ibrahim is a strategic brand designer with 13+ years of experience across visual communication, branding and art direction.
+      </p>
+      <p class="body" data-reveal>
+        His work connects strategic thinking, visual identity, typography, art direction and visual systems to build brands with clarity, character and purpose.
+      </p>
+      <p class="body quiet" data-reveal>
+        I work across strategy, identity and art direction building brands from the thinking behind them to the systems people experience.
+      </p>
+    </div>
+
+    <p class="chain" data-chain aria-label="Strategy, positioning, identity, system, expression">
+      {CHAIN.map((w, i) => (
+        <>
+          <span class={`w${i === CHAIN.length - 1 ? ' last' : ''}`} aria-hidden="true">{w}</span>
+          {i < CHAIN.length - 1 && <span class="sep" aria-hidden="true">→</span>}
+        </>
+      ))}
+    </p>
+
+    <div class="practice">
+      {PRACTICE.map((c) => (
+        <div data-reveal>
+          <h3 class="meta">{c.head}</h3>
+          <ul>{c.items.map((x) => <li>{x}</li>)}</ul>
+        </div>
+      ))}
+    </div>
+
+    <div class="experience">
+      <h3 class="display"><span class="acid">Selected</span><br /><span>experience</span><br /><span class="dim">2013/<br />present</span></h3>
+      <ol>
+        {EXPERIENCE.map((e) => (
+          <li data-reveal>
+            <span class="yr mono quiet">{e.years}</span>
+            <span>{e.role}</span>
+            <span class="meta">{e.where}</span>
+          </li>
+        ))}
+      </ol>
+    </div>
+
+    <div class="tools">
+      <h3 class="display">Tools I<br /><span class="dim">build with.</span></h3>
+      <p class="body" data-reveal>
+        Photoshop, Illustrator and InDesign are at the core of my workflow. I use CapCut and AI video production for motion-led storytelling, with working knowledge of After Effects.<br /><br />
+        <span class="quiet">The tools change the thinking stays consistent.</span>
+      </p>
+    </div>
+  </div>
+</section>

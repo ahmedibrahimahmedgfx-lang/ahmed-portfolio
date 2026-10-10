@@ -1,0 +1,23 @@
+{
+  "name": "ahmed-ibrahim-portfolio",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Selected Recordings. Portfolio of Ahmed Ibrahim, strategic brand designer and art director.",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro check && astro build",
+    "build:fast": "astro build",
+    "preview": "astro preview",
+    "media": "python3 scripts/media/build_media.py"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.7.4",
+    "astro": "^7.3.8",
+    "gsap": "^3.15.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "typescript": "^5.9.3"
+  }
+}

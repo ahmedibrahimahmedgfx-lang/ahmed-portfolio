@@ -1,0 +1,18 @@
+---
+import { TRACKS } from '../data/site';
+interface Props { n: string; statement?: string }
+const { n } = Astro.props;
+const t = TRACKS.find((x) => x.n === n)!;
+---
+<header class="track-head wrap" id={t.id} data-section data-track={`TRACK ${t.n}`} data-label={t.name}>
+  <div class="row meta">
+    <span class="num">Track {t.n}</span>
+    <span class="quiet">{t.side}</span>
+  </div>
+  <h2 class="display" data-split>{t.name}</h2>
+  <span class="tape-draw" data-tape-draw></span>
+  <div class="under meta">
+    <span class="quiet">{t.meta}</span>
+    <span class="mono">Play / {t.n}</span>
+  </div>
+</header>

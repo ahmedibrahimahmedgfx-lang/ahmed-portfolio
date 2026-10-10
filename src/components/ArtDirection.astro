@@ -1,0 +1,96 @@
+---
+import Img from './Img.astro';
+import Arrow from './Arrow.astro';
+import TrackHead from './TrackHead.astro';
+import { ART } from '../data/projects';
+const [valu, nescafe, spotify] = ART;
+---
+<TrackHead n="03" />
+<div class="art" data-section data-track="TRACK 03" data-label="ART DIRECTION">
+  <!-- valU / the shadow is the idea, so the pointer reveals it -->
+  <article class="ad-entry wrap" aria-labelledby="ad-valu">
+    <div class="top">
+      <div class="title">
+        <span class="mono quiet">03.01</span>
+        <h3 class="display" id="ad-valu">{valu.title}</h3>
+      </div>
+      <div class="aside">
+        <span class="meta">{valu.kind}</span>
+        <span class="meta quiet">{valu.tagline}</span>
+      </div>
+    </div>
+    <p class="statement display" data-reveal><span class="acid">{valu.statement![0]}</span><br /><span class="dim">{valu.statement![1]}</span></p>
+    <a class="valu-stage" href={`/work/${valu.slug}`} data-valu data-cursor="EXPLORE" data-vt={`cover-${valu.slug}`} aria-label="Open the valU case study">
+      <Img id="valu-kv-clean" alt="valU key visual: a small figure standing on the valU asterisk beneath an oversized product shadow" sizes="100vw" />
+      <span class="veil" aria-hidden="true"></span>
+      <span class="hint mono micro" aria-hidden="true">01 / Perspective. 02 / Visual device. 03 / Mood.</span>
+    </a>
+    <a class="open meta" href={`/work/${valu.slug}`} data-cursor="VIEW / 01"><span class="u">Open recording</span> <Arrow /></a>
+  </article>
+
+  <!-- NESCAFÉ / the scene is read from above to below -->
+  <article class="ad-entry wrap" aria-labelledby="ad-nes">
+    <div class="top">
+      <div class="title">
+        <span class="mono quiet">03.02</span>
+        <h3 class="display" id="ad-nes">{nescafe.title}</h3>
+      </div>
+      <div class="aside">
+        <span class="meta">{nescafe.kind}</span>
+        <span class="meta quiet">{nescafe.credits}</span>
+      </div>
+    </div>
+    <div class="nes-scroll" data-nescafe>
+      <a class="nes-pin" href={`/work/${nescafe.slug}`} data-cursor="EXPLORE" aria-label="Open the NESCAFÉ case study" data-vt={`cover-${nescafe.slug}`}>
+        <span class="nes-img"><Img id="nescafe-kv" alt="NESCAFÉ World Cup key visual: a fan sits above the ceiling of an operating room, still in the stands" sizes="100vw" /></span>
+        <span class="nes-cap above display" data-nes-above><span class="acid">Mind in</span><br />the stands.</span>
+        <span class="nes-cap below display" data-nes-below><span class="acid">Body at</span><br />work.</span>
+        <span class="nes-axis mono micro" aria-hidden="true"><span>Above</span><i data-nes-tick></i><span>Below</span></span>
+      </a>
+    </div>
+    <div class="nes-drafts" aria-label="Development frames">
+      {['nescafe-draft-1', 'nescafe-draft-2', 'nescafe-draft-3'].map((id, i) => (
+        <figure data-reveal><Img id={id} alt={`NESCAFÉ development frame ${i + 1}`} sizes="(max-width:760px) 33vw, 18vw" /><figcaption class="mono micro quiet">Frame {String(i + 1).padStart(3, '0')}</figcaption></figure>
+      ))}
+    </div>
+    <a class="open meta" href={`/work/${nescafe.slug}`} data-cursor="VIEW / 02"><span class="u">Open recording</span> <Arrow /></a>
+  </article>
+
+  <!-- Spotify / type sketch to final type -->
+  <article class="ad-entry wrap" aria-labelledby="ad-spot">
+    <div class="top">
+      <div class="title">
+        <span class="mono quiet">03.03</span>
+        <h3 class="display" id="ad-spot">{spotify.title}</h3>
+      </div>
+      <div class="aside">
+        <span class="meta">Human-led concept. AI-assisted production.</span>
+        <span class="meta quiet">{spotify.credits}</span>
+      </div>
+    </div>
+    <p class="statement display" data-reveal><span class="acid">{spotify.statement![0]}</span><br /><span class="dim">{spotify.statement![1]}</span></p>
+    <div class="spot-stage">
+      <a class="kv" href={`/work/${spotify.slug}`} data-cursor="EXPLORE" data-vt={`cover-${spotify.slug}`} aria-label="Open the Spotify case study">
+        <Img id="spotify-kv" alt="Spotify Premium campaign: an everyday tea seller in headphones, Arabic headline مناسب لأي حد" sizes="100vw" />
+      </a>
+      <div class="spot-compare" data-compare data-cursor="DRAG">
+        <Img id="spotify-process-1" alt="Type sketch for مناسب لأي حد" sizes="(max-width:760px) 92vw, 56vw" />
+        <div class="final"><Img id="spotify-process-2" alt="Final campaign type for مناسب لأي حد" sizes="(max-width:760px) 92vw, 56vw" /></div>
+        <span class="handle" aria-hidden="true"><span class="mono micro">Drag</span></span>
+        <span class="tag l mono micro" aria-hidden="true">Type sketch</span>
+        <span class="tag r mono micro" aria-hidden="true">Final type</span>
+        <label class="sr" for="spot-range">Compare type sketch and final type</label>
+        <input id="spot-range" type="range" min="0" max="100" value="50" />
+      </div>
+      <div class="process">
+        <p class="ar ar-line" lang="ar">مناسب لأي حد</p>
+        <p class="meta">Type sketch → final type</p>
+        <figure style="margin:0" data-reveal>
+          <Img id="spotify-process-4" alt="Character development in a controlled visual space" sizes="(max-width:760px) 92vw, 30vw" />
+          <figcaption class="mono micro quiet" style="margin-top:8px">Magnific Spaces → Character development</figcaption>
+        </figure>
+      </div>
+    </div>
+    <a class="open meta" href={`/work/${spotify.slug}`} data-cursor="VIEW / 03"><span class="u">Open recording</span> <Arrow /></a>
+  </article>
+</div>

@@ -1,0 +1,59 @@
+---
+import Img from './Img.astro';
+import TrackHead from './TrackHead.astro';
+import { TYPE_WORKS } from '../data/site';
+---
+<TrackHead n="04" />
+<div class="typography" data-section data-track="TRACK 04" data-label="TYPOGRAPHY & POSTERS">
+  <div class="type-intro wrap">
+    <p class="statement display" data-reveal><span class="acid">Turning feeling</span><br /><span class="dim">into form.</span></p>
+    <div class="flow meta" data-reveal>
+      <span><b>Feeling</b><span class="mono quiet">01</span></span>
+      <span><b>Letterform</b><span class="mono quiet">02</span></span>
+      <span><b>Composition</b><span class="mono quiet">03</span></span>
+    </div>
+  </div>
+
+  {TYPE_WORKS.map((w, i) => (
+    <article class={`type-work type-work--${w.layout}`} aria-labelledby={`tw-${w.slug}`}>
+      {w.layout === 'reveal' && (
+        <div class="tw-reveal" data-type-reveal>
+          <div class="pin">
+            <div class="stage-meta mono micro quiet wrap"><span>04.{w.n} / Letterform</span><span data-tr-phase>Feeling → Letterform → Composition</span></div>
+            <div class="letter" data-tr-letter><Img id={w.letter!} alt={`${w.title} lettering`} sizes="(max-width:760px) 88vw, 62vw" fit="contain" /></div>
+            <div class="posters" data-tr-posters data-cursor="EXPLORE">
+              {w.images.map((id, j) => <Img id={id} alt={`${w.title} poster ${j + 1}`} sizes="(max-width:760px) 72vw, 32vw" />)}
+            </div>
+          </div>
+        </div>
+      )}
+      {w.layout === 'pair' && (
+        <div class={`tw-pair wrap${i % 2 ? ' flip' : ''}`}>
+          {w.letter && <div class="letter" data-reveal><Img id={w.letter} alt={`${w.title} lettering`} sizes="(max-width:760px) 92vw, 30vw" fit="contain" /></div>}
+          <div class="a" data-mask data-cursor="EXPLORE"><Img id={w.images[0]} alt={`${w.title} poster 1`} sizes="(max-width:760px) 46vw, 32vw" /></div>
+          <div class="b" data-mask data-cursor="EXPLORE"><Img id={w.images[1]} alt={`${w.title} poster 2`} sizes="(max-width:760px) 46vw, 32vw" /></div>
+        </div>
+      )}
+      {w.layout === 'triptych' && (
+        <div class="tw-tri wrap">
+          <div class="a" data-mask data-cursor="EXPLORE"><Img id={w.images[0]} alt={`${w.title} poster`} sizes="(max-width:760px) 92vw, 48vw" /></div>
+          <div class="b" data-mask><Img id={w.images[1]} alt={`${w.title} lettering sketch`} sizes="(max-width:760px) 92vw, 48vw" /></div>
+          <div class="c" data-mask><Img id={w.images[2]} alt={`${w.title} poster variation`} sizes="(max-width:760px) 92vw, 48vw" /></div>
+        </div>
+      )}
+      {w.layout === 'wide' && (
+        <div class="tw-wide wrap" data-cursor="EXPLORE">
+          <div data-parallax-img><Img id={w.images[0]} alt={`${w.title}: Arabic lettering seen through a lens with a running deer`} sizes="100vw" /></div>
+        </div>
+      )}
+      <div class="cap wrap">
+        <div class="t">
+          <span class="mono micro quiet">04.{w.n}</span>
+          <h3 id={`tw-${w.slug}`}>{w.title}</h3>
+          <p class="meta quiet" style="margin:10px 0 0">{w.kind}</p>
+        </div>
+        <p class="body" data-reveal>{w.text}</p>
+      </div>
+    </article>
+  ))}
+</div>

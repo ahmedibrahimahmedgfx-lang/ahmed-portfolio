@@ -1,0 +1,33 @@
+---
+import Img from './Img.astro';
+import Arrow from './Arrow.astro';
+import type { Project } from '../data/projects';
+import { previewSrc } from '../lib/media';
+interface Props { projects: Project[]; track: string }
+const { projects, track } = Astro.props;
+---
+<ul class="p-index wrap" role="list">
+  {projects.map((p, i) => (
+    <li>
+      <a
+        class="row"
+        href={`/work/${p.slug}`}
+        data-preview={p.preview}
+        data-preview-src={previewSrc(p.preview)}
+        data-preview-cap={`${p.title} / ${p.kind}`}
+        data-preview-n={`${track}.${String(i + 1).padStart(2, '0')}`}
+        data-vt={`cover-${p.slug}`}
+        data-cursor={`VIEW / ${String(i + 1).padStart(2, '0')}`}
+      >
+        <span class="n mono quiet">{track}.{String(i + 1).padStart(2, '0')}</span>
+        <span class="inline-img"><Img id={p.cover} alt="" sizes="92vw" /></span>
+        <span class="title">{p.title}</span>
+        <span class="info">
+          <span class="meta">{p.kind}</span>
+          <span class="meta quiet">{p.tagline}</span>
+        </span>
+        <span class="go"><Arrow /></span>
+      </a>
+    </li>
+  ))}
+</ul>

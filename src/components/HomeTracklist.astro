@@ -1,0 +1,21 @@
+---
+import { TRACKS } from '../data/site';
+import { previewSrc } from '../lib/media';
+---
+<section class="tracklist wrap" id="tracklist" data-section data-track="SIDE A" data-label="TRACKLIST" aria-labelledby="tl-h">
+  <div class="head">
+    <h2 class="display" id="tl-h">Tracklist</h2>
+    <span class="meta quiet">Selected recordings / 2019—2026</span>
+  </div>
+  <ol>
+    {TRACKS.map((t) => (
+      <li>
+        <a href={`#${t.id}`} data-preview={t.preview} data-preview-src={previewSrc(t.preview)} data-preview-cap={`TRACK ${t.n} / ${t.name}`} data-cursor={`TRACK ${t.n}`}>
+          <span class="t-n mono">Track {t.n}</span>
+          <span class="t-name">{t.name}</span>
+          <span class="t-meta meta quiet">{t.meta}</span>
+        </a>
+      </li>
+    ))}
+  </ol>
+</section>

@@ -1,0 +1,30 @@
+---
+import { img } from '../lib/media';
+interface Props {
+  id: string;
+  alt: string;
+  sizes?: string;
+  class?: string;
+  eager?: boolean;
+  fit?: 'cover' | 'contain';
+  transitionName?: string;
+  attrs?: Record<string, string>;
+}
+const { id, alt, sizes = '100vw', class: cls = '', eager = false, fit = 'cover', transitionName, attrs = {} } = Astro.props;
+const m = img(id);
+const style = `--ph:${m.color};aspect-ratio:${m.ratio};` + (transitionName ? `view-transition-name:${transitionName};` : '');
+---
+<picture class={`img ${cls}`} style={style} data-fit={fit} {...attrs}>
+  <source type="image/avif" srcset={m.avif} sizes={sizes} />
+  <source type="image/webp" srcset={m.webp} sizes={sizes} />
+  <img
+    src={m.fallback}
+    alt={alt}
+    width={m.width}
+    height={m.height}
+    loading={eager ? 'eager' : 'lazy'}
+    decoding="async"
+    fetchpriority={eager ? 'high' : 'auto'}
+    style={`background-image:url(${m.blur})`}
+  />
+</picture>

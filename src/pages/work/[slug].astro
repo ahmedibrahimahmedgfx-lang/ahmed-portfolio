@@ -1,0 +1,161 @@
+---
+import Base from '../../layouts/Base.astro';
+import Img from '../../components/Img.astro';
+import Arrow from '../../components/Arrow.astro';
+import { PROJECTS, ORDER, nextOf, indexOf, type Project } from '../../data/projects';
+
+export function getStaticPaths() {
+  return ORDER.map((slug) => ({ params: { slug }, props: { project: PROJECTS[slug] } }));
+}
+interface Props { project: Project }
+const { project: p } = Astro.props;
+const next = nextOf(p.slug);
+const { n, of } = indexOf(p.slug);
+const trackN = p.track === 1 ? '01' : '03';
+const lead = p.blocks[0];
+const rest = p.blocks.slice(1);
+const toneStyle = `--c-bg:${p.tone.bg};--c-ink:${p.tone.ink};--c-accent:${p.tone.accent};--c-dim:${p.tone.dim};`;
+let frameNo = 0;
+const description = `${p.title}. ${p.kind}. ${lead.lead ?? lead.text}`.slice(0, 158);
+---
+<Base title={`${p.title} / ${p.kind} / Ahmed Ibrahim`} description={description} side={`TRACK ${trackN}`} pageClass="case-page">
+  <article class="case" style={toneStyle} data-tone={p.tone.bg}>
+    <header class="case-hero" data-section data-track={`TRACK ${trackN}`} data-label={p.title}>
+      <div class="cover" data-hero-cover>
+        <Img id={p.cover} alt={`${p.title} cover`} eager sizes="100vw" transitionName={`cover-${p.slug}`} />
+      </div>
+      <div class="content">
+        <div class="row meta">
+          <a class="case-back" href={`/#${p.track === 1 ? 'brand-identities' : 'art-direction'}`} data-cursor="REWIND"><Arrow dir="replay" /> Track {trackN} / {p.trackName}</a>
+          <span class="mono">{trackN}.{String(n).padStart(2, '0')} / {String(of).padStart(2, '0')}</span>
+        </div>
+        <h1 class="display" style={`view-transition-name:title-${p.slug}`}>{p.title}</h1>
+        <div class="row meta">
+          <span>{p.kind}</span>
+          {p.year && <span class="quiet">{p.year}</span>}
+        </div>
+      </div>
+    </header>
+
+    <div class="case-body" data-case-body>
+      <section class="case-intro wrap" aria-label="Positioning">
+        <p class={`tagline${p.tagline.match(/[؀-ۿ]/) ? ' ar' : ''}`} data-reveal>{p.tagline}</p>
+        {p.credits && <p class="credits meta quiet" data-reveal>{p.credits}</p>}
+      </section>
+
+      <section class="narrative wrap" aria-label="Thinking" data-section data-track={`TRACK ${trackN}`} data-label={`${p.title} / THINKING`}>
+        <div class="q">
+          <p class="meta" style="color:var(--c-accent);margin:0 0 18px">{lead.label}</p>
+          <p class="lead">{lead.lead}</p>
+          {lead.text && <p class="body" style="margin-top:26px">{lead.text}</p>}
+        </div>
+        <div class="blocks">
+          {rest.map((b) => (
+            <div class="b" data-reveal>
+              <span class="label meta">{b.label}</span>
+              <p>{b.text}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {p.statement && (
+        <section class="case-statement wrap" aria-label="Campaign line">
+          <p class="display" data-reveal><span style="color:var(--c-accent)">{p.statement[0]}</span><br /><span class="dim">{p.statement[1]}</span></p>
+          <p class="meta quiet" style="margin-top:24px">{p.year}</p>
+        </section>
+      )}
+
+      {p.interaction === 'valu' && (
+        <section class="wrap" aria-label="Key visual">
+          <a class="valu-stage" href="#frames" data-valu data-cursor="EXPLORE" aria-label="Key visual. Move the pointer to reveal it.">
+            <Img id="valu-kv-clean" alt="valU key visual: a small figure on the valU asterisk under a giant product shadow" sizes="100vw" />
+            <span class="veil" aria-hidden="true"></span>
+          </a>
+        </section>
+      )}
+      {p.interaction === 'nescafe' && (
+        <section class="wrap" aria-label="Above and below">
+          <div class="nes-scroll" data-nescafe>
+            <div class="nes-pin">
+              <span class="nes-img"><Img id="nescafe-kv" alt="NESCAFÉ key visual: fan above the ceiling of an operating room" sizes="100vw" /></span>
+              <span class="nes-cap above display" data-nes-above><span class="acid">Mind in</span><br />the stands.</span>
+              <span class="nes-cap below display" data-nes-below><span class="acid">Body at</span><br />work.</span>
+              <span class="nes-axis mono micro" aria-hidden="true"><span>Above</span><i data-nes-tick></i><span>Below</span></span>
+            </div>
+          </div>
+          <div class="nes-drafts" aria-label="Development frames">
+            {['nescafe-draft-1', 'nescafe-draft-2', 'nescafe-draft-3'].map((id, i) => (
+              <figure data-reveal><Img id={id} alt={`NESCAFÉ development frame ${i + 1}`} sizes="(max-width:760px) 33vw, 18vw" /><figcaption class="mono micro quiet">Frame {String(i + 1).padStart(3, '0')}</figcaption></figure>
+            ))}
+          </div>
+        </section>
+      )}
+      {p.interaction === 'spotify' && (
+        <section class="wrap" aria-label="From sketch to system">
+          <div class="spot-stage">
+            <div class="spot-compare" data-compare data-cursor="DRAG">
+              <Img id="spotify-process-1" alt="Type sketch for مناسب لأي حد" sizes="(max-width:760px) 92vw, 56vw" />
+              <div class="final"><Img id="spotify-process-2" alt="Final campaign type for مناسب لأي حد" sizes="(max-width:760px) 92vw, 56vw" /></div>
+              <span class="handle" aria-hidden="true"><span class="mono micro">Drag</span></span>
+              <span class="tag l mono micro" aria-hidden="true">Type sketch</span>
+              <span class="tag r mono micro" aria-hidden="true">Final type</span>
+              <label class="sr" for="spot-range-case">Compare type sketch and final type</label>
+              <input id="spot-range-case" type="range" min="0" max="100" value="50" />
+            </div>
+            <div class="process">
+              <p class="display" style="font-size:var(--t-m);margin:0">From sketch<br /><span class="dim">to system.</span></p>
+              <p class="meta">Human-led concept / AI-assisted production</p>
+              <div class="b"><span class="meta" style="color:var(--c-accent)">01 / Type exploration</span><p class="body" style="margin-top:8px">The campaign typography started as a rough hand-built idea, then evolved into a bold visual voice designed around the campaign’s humor and attitude.</p></div>
+              <div class="b"><span class="meta" style="color:var(--c-accent)">02 / Character development</span><p class="body" style="margin-top:8px">Characters were developed through a controlled visual space to maintain consistent identity, styling, lighting and texture across the campaign.</p></div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {p.notes && (
+        <section class="wrap" aria-label="Direction notes">
+          <div class="notes">
+            {p.notes.map((b) => (
+              <div class="n" data-reveal><span class="meta" style="color:var(--c-accent)">{b.label}</span><p>{b.text}</p></div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <div id="frames">
+        {p.chapters.map((ch, ci) => (
+          <section class="chapter wrap" aria-label={ch.label} data-section data-track={`TRACK ${trackN}`} data-label={`${p.title} / ${ch.label}`}>
+            <div class="ch-head">
+              <span class="t">{ch.label}</span>
+              <span class="mono quiet">{String(ci + 1).padStart(2, '0')} / {String(p.chapters.length).padStart(2, '0')}</span>
+            </div>
+            <div class="frames">
+              {ch.frames.map((f) => {
+                frameNo++;
+                return (
+                  <figure class={f.layout} data-cursor="EXPLORE">
+                    <div data-mask><Img id={f.id} alt={f.alt} sizes={f.layout === 'half' ? '(max-width:760px) 92vw, 46vw' : f.layout === 'inset' ? '(max-width:760px) 92vw, 56vw' : '100vw'} /></div>
+                    <figcaption class="mono micro"><span>Frame {String(frameNo).padStart(3, '0')}</span><span>{p.title}</span></figcaption>
+                  </figure>
+                );
+              })}
+            </div>
+          </section>
+        ))}
+      </div>
+    </div>
+
+    <a class="case-next" href={`/work/${next.slug}`} data-vt={`cover-${next.slug}`} data-cursor="NEXT →" data-section data-track={`TRACK ${next.track === 1 ? '01' : '03'}`} data-label="NEXT RECORDING">
+      <Img id={next.cover} alt="" sizes="100vw" />
+      <span class="content">
+        <span class="label meta"><span>Next recording <Arrow /></span><span class="quiet">{next.kind}</span></span>
+        <span></span>
+        <span>
+          <h2 class="display">{next.title}</h2>
+          <span class="cta meta" style="margin-top:14px">Play / Track {next.track === 1 ? '01' : '03'} <Arrow /></span>
+        </span>
+      </span>
+    </a>
+  </article>
+</Base>

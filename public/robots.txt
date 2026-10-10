@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://ahmed-ibrahim.pages.dev/sitemap-index.xml

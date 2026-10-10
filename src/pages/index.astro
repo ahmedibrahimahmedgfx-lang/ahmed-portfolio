@@ -1,0 +1,28 @@
+---
+import Base from '../layouts/Base.astro';
+import Opening from '../components/Opening.astro';
+import Profile from '../components/Profile.astro';
+import HomeTracklist from '../components/HomeTracklist.astro';
+import TrackHead from '../components/TrackHead.astro';
+import ProjectIndex from '../components/ProjectIndex.astro';
+import Logos from '../components/Logos.astro';
+import ArtDirection from '../components/ArtDirection.astro';
+import Typography from '../components/Typography.astro';
+import VisualRD from '../components/VisualRD.astro';
+import Closing from '../components/Closing.astro';
+import { BRAND } from '../data/projects';
+---
+<Base pageClass="home">
+  <Opening />
+  <Profile />
+  <HomeTracklist />
+  <TrackHead n="01" />
+  <section aria-label="Brand identities" data-section data-track="TRACK 01" data-label="BRAND IDENTITIES">
+    <ProjectIndex projects={BRAND} track="01" />
+  </section>
+  <Logos />
+  <ArtDirection />
+  <Typography />
+  <VisualRD />
+  <Closing />
+</Base>

@@ -1,0 +1,19 @@
+---
+import Img from './Img.astro';
+import TrackHead from './TrackHead.astro';
+import { LOGOS } from '../data/site';
+---
+<TrackHead n="02" />
+<section class="logos wrap" aria-label="Logo design" data-section data-track="TRACK 02" data-label="LOGO DESIGN">
+  <p class="statement display" data-reveal><span class="acid">Ideas distilled</span> <span class="dim">into marks.</span></p>
+  <div class="logo-sheet">
+    {LOGOS.map((l, i) => (
+      <figure class="logo-cell" style="margin:0" data-cursor="EXPLORE" data-logo>
+        <span class="n mono micro">02.{String(i + 1).padStart(2, '0')}</span>
+        <Img id={l.id} alt={`${l.name} logo`} sizes="(max-width: 760px) 50vw, 33vw" fit="contain" />
+        <figcaption class="cap mono micro"><span class={l.rtl ? 'ar' : ''}>{l.name}</span><span>Mark</span></figcaption>
+      </figure>
+    ))}
+  </div>
+  <p class="meta quiet" style="margin-top:18px">Marks / Symbols / Wordmarks / Monograms</p>
+</section>

@@ -38,14 +38,21 @@ function opening(home: boolean) {
 
   if (reduce()) { setTapeActive(true); return; }
 
-  // first frame: the name slides in from opposite edges, metadata types on
-  gsap.from([l1, l2], { xPercent: (i) => (i ? 14 : -14), opacity: 0, duration: 1.3, ease: 'expo.out', stagger: 0.08 });
+  // first frame: the name slides in from opposite edges (outer line), metadata types on
+  gsap.from([l1, l2], { x: (i) => (i ? 1 : -1) * innerWidth * 0.06, opacity: 0, duration: 1.2, ease: 'expo.out', stagger: 0.08, clearProps: 'transform,opacity' });
   gsap.from(open.querySelectorAll('.meta-block > div, .side-note'), { opacity: 0, y: 10, duration: 0.8, ease: 'power3.out', stagger: 0.06, delay: 0.25 });
   gsap.from(shaft, { scaleX: 0, duration: 0.9, ease: 'expo.out', delay: 0.7 });
 
-  // the name parts drift apart at a different speed from the page
-  gsap.to(l1, { xPercent: -10, ease: 'none', scrollTrigger: { trigger: open, start: 'top top', end: 'bottom top', scrub: true } });
-  gsap.to(l2, { xPercent: 8, ease: 'none', scrollTrigger: { trigger: open, start: 'top top', end: 'bottom top', scrub: true } });
+  // scroll: the two words drift apart a little (inner spans, viewport-relative), then the name settles
+  // and recedes before the hero leaves. Most of both words always stays on screen.
+  const i1 = l1?.querySelector<HTMLElement>('.li');
+  const i2 = l2?.querySelector<HTMLElement>('.li');
+  const name = open.querySelector<HTMLElement>('.name');
+  const travel = () => (innerWidth < 760 ? 0.03 : 0.045) * innerWidth;
+  if (i1 && i2 && name) gsap.timeline({ scrollTrigger: { trigger: open, start: 'top top', end: 'bottom top', scrub: 0.6, invalidateOnRefresh: true } })
+    .fromTo(i1, { x: 0 }, { x: () => -travel(), ease: 'none', duration: 0.6 }, 0)
+    .fromTo(i2, { x: 0 }, { x: () => travel() * 0.85, ease: 'none', duration: 0.6 }, 0)
+    .fromTo(name, { y: 0, opacity: 1 }, { y: () => -innerHeight * 0.05, opacity: 0.35, ease: 'power1.in', duration: 0.45 }, 0.55);
 
   // the arrow's shaft stretches across the screen and becomes the tape
   const stretch = () => (innerWidth - (shaft!.getBoundingClientRect().left)) / shaft!.offsetWidth;
@@ -203,18 +210,110 @@ function compare() {
   });
 }
 
-/* ------------------------------------------------------------------ typography: letterform → poster */
-function typeReveals() {
-  document.querySelectorAll<HTMLElement>('[data-type-reveal]').forEach((sec) => {
-    if (reduce()) return;
-    const letter = sec.querySelector<HTMLElement>('[data-tr-letter]');
-    const posters = sec.querySelector<HTMLElement>('[data-tr-posters]');
-    const phase = sec.querySelector<HTMLElement>('[data-tr-phase]');
-    gsap.timeline({ scrollTrigger: { trigger: sec, start: 'top top', end: 'bottom bottom', scrub: 0.5,
-      onUpdate: (s) => { if (phase) phase.textContent = s.progress < 0.25 ? 'Feeling' : s.progress < 0.55 ? 'Letterform' : 'Composition'; } } })
-      .fromTo(letter, { scale: 1.06, opacity: 1 }, { scale: 0.7, opacity: 0, ease: 'power2.in', duration: 0.38 }, 0.08)
-      .fromTo(posters, { clipPath: 'inset(50% 50% 50% 50%)' }, { clipPath: 'inset(0% 0% 0% 0%)', ease: 'power3.inOut', duration: 0.5 }, 0.36);
+/* ------------------------------------------------------------------ typography: letterform → poster
+   ENTRY → LETTERFORM → TRANSFORMATION → FULL POSTER MOMENT → EXIT
+   Boxes are measured, every image is fitted inside its box at its own aspect ratio (never stretched). */
+type Box = { x: number; y: number; w: number; h: number };
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+const lerpBox = (a: Box, b: Box, t: number): Box => ({ x: lerp(a.x, b.x, t), y: lerp(a.y, b.y, t), w: lerp(a.w, b.w, t), h: lerp(a.h, b.h, t) });
+const seg = (p: number, a: number, b: number) => Math.min(1, Math.max(0, (p - a) / (b - a)));
+const io3 = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+const fit = (box: Box, r: number): Box => {
+  const w = Math.min(box.w, box.h * r), h = w / r;
+  return { x: box.x + (box.w - w) / 2, y: box.y + (box.h - h) / 2, w, h };
+};
+/** Lays out posters inside a box at equal height (row) or main + stacked column, whichever is larger. */
+function arrange(box: Box, ratios: number[], gap: number): Box[] {
+  const n = ratios.length;
+  const sum = ratios.reduce((a, b) => a + b, 0);
+  let H = Math.min(box.h, (box.w - gap * (n - 1)) / sum);
+  let row: Box[] = [];
+  let x = 0;
+  ratios.forEach((r) => { row.push({ x, y: 0, w: r * H, h: H }); x += r * H + gap; });
+  let best = row, bw = x - gap, bh = H, area = ratios.reduce((a, r) => a + r * H * H, 0);
+  if (n >= 3) {
+    // main + stack: first poster full height, the others stacked in one column beside it
+    const rest = ratios.slice(1);
+    const k = rest.length;
+    // stack width = s; each item height = s / r_i; total = sum(s/r_i) + gap*(k-1) = H2
+    const inv = rest.reduce((a, r) => a + 1 / r, 0);
+    // solve H2 so that ratios[0]*H2 + gap + s <= box.w, with s = (H2 - gap*(k-1)) / inv
+    let H2 = Math.min(box.h, (box.w - gap + (gap * (k - 1)) / inv) / (ratios[0] + 1 / inv));
+    const s = (H2 - gap * (k - 1)) / inv;
+    const out: Box[] = [{ x: 0, y: 0, w: ratios[0] * H2, h: H2 }];
+    let y = 0;
+    rest.forEach((r) => { out.push({ x: ratios[0] * H2 + gap, y, w: s, h: s / r }); y += s / r + gap; });
+    const a2 = ratios[0] * H2 * H2 + rest.reduce((a, r) => a + s * (s / r), 0);
+    if (a2 > area) { best = out; bw = ratios[0] * H2 + gap + s; bh = H2; area = a2; }
+  }
+  const ox = box.x + (box.w - bw) / 2, oy = box.y + (box.h - bh) / 2;
+  return best.map((b) => ({ x: b.x + ox, y: b.y + oy, w: b.w, h: b.h }));
+}
+
+function typeSequences(): Cleanup {
+  const seqs = [...document.querySelectorAll<HTMLElement>('[data-type-seq]')];
+  const wide = matchMedia('(min-width: 761px) and (min-aspect-ratio: 1/1)');
+  if (!seqs.length || reduce() || !wide.matches) return () => {};
+  const offs: Cleanup[] = [];
+  seqs.forEach((seq) => {
+    seq.classList.add('is-pinned');
+    const stage = seq.querySelector<HTMLElement>('.tw-stage')!;
+    const letter = seq.querySelector<HTMLElement>('[data-tw-letter]')!;
+    const group = seq.querySelector<HTMLElement>('[data-tw-posters]')!;
+    const posters = [...seq.querySelectorAll<HTMLElement>('[data-tw-poster]')];
+    const ratios = posters.map((p) => Number(p.dataset.ratio) || 0.8);
+    const lr = Number(letter.dataset.ratio) || 1.4;
+    const phase = seq.querySelector<HTMLElement>('[data-tw-phase]');
+    const step = seq.querySelector<HTMLElement>('[data-tw-step]');
+    const flip = seq.classList.contains('tw-seq--flip');
+    let target = 0, cur = 0, raf = 0;
+
+    const render = (p: number) => {
+      const W = stage.clientWidth, H = stage.clientHeight;
+      const m = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--m')) || 64;
+      const top = Math.max(110, H * 0.15), bottom = Math.max(70, H * 0.09);
+      const A: Box = { x: m, y: top, w: W - 2 * m, h: H - top - bottom };
+      const gap = Math.max(16, A.w * 0.03);
+      const colL = A.w * 0.37, colP = A.w - colL - gap;
+      // letter: centred and large → its 37% column → leaves outward
+      const L1: Box = { x: A.x + A.w * 0.19, y: A.y, w: A.w * 0.62, h: A.h * 0.78 };
+      const L4: Box = flip ? { x: A.x + colP + gap, y: A.y + A.h * 0.1, w: colL, h: A.h * 0.8 } : { x: A.x, y: A.y + A.h * 0.1, w: colL, h: A.h * 0.8 };
+      const L5: Box = { ...L4, x: L4.x + (flip ? 1 : -1) * A.w * 0.12 };
+      const P4: Box = flip ? { x: A.x, y: A.y, w: colP, h: A.h } : { x: A.x + colL + gap, y: A.y, w: colP, h: A.h };
+      const t1 = io3(seg(p, 0.05, 0.34));
+      const tr = io3(seg(p, 0.16, 0.46));
+      const t2 = io3(seg(p, 0.58, 0.82));
+      const lb = fit(t2 > 0 ? lerpBox(L4, L5, t2) : lerpBox(L1, L4, t1), lr);
+      Object.assign(letter.style, { left: `${lb.x}px`, top: `${lb.y}px`, width: `${lb.w}px`, height: `${lb.h}px`, opacity: String(1 - t2) });
+      const pb = lerpBox(P4, A, t2);
+      const boxes = arrange(pb, ratios, gap * 0.6);
+      const gx = Math.min(...boxes.map((b) => b.x)), gy = Math.min(...boxes.map((b) => b.y));
+      const gw = Math.max(...boxes.map((b) => b.x + b.w)) - gx, gh = Math.max(...boxes.map((b) => b.y + b.h)) - gy;
+      Object.assign(group.style, { left: `${gx}px`, top: `${gy}px`, width: `${gw}px`, height: `${gh}px` });
+      // the poster opens out of the lettering's side and widens until it is whole
+      const hidden = (1 - tr) * 100;
+      // letter on the left → poster grows rightward from its left edge; flipped → grows leftward
+      group.style.clipPath = flip ? `inset(0 0 0 ${hidden}%)` : `inset(0 ${hidden}% 0 0)`;
+      boxes.forEach((b, i) => Object.assign(posters[i].style, { left: `${b.x - gx}px`, top: `${b.y - gy}px`, width: `${b.w}px`, height: `${b.h}px` }));
+      const ph = p < 0.16 ? 0 : p < 0.58 ? 1 : 2;
+      if (phase) phase.textContent = ['Letterform', 'Transformation', 'Composition'][ph];
+      if (step) step.textContent = `0${ph + 1} / 03`;
+    };
+    const tick = () => {
+      cur += (target - cur) * 0.2;
+      if (Math.abs(target - cur) < 0.0005) cur = target;
+      render(cur);
+      raf = cur !== target ? requestAnimationFrame(tick) : 0;
+    };
+    const st = ScrollTrigger.create({
+      trigger: stage, pin: true, start: 'top top', end: '+=150%', anticipatePin: 1,
+      onUpdate: (s) => { target = s.progress; if (!raf) raf = requestAnimationFrame(tick); },
+      onRefresh: (s) => { target = cur = s.progress; render(cur); },
+    });
+    render(0);
+    offs.push(() => { st.kill(); cancelAnimationFrame(raf); seq.classList.remove('is-pinned'); });
   });
+  return () => offs.forEach((f) => f());
 }
 
 /* ------------------------------------------------------------------ films: real motion when relevant */
@@ -292,6 +391,75 @@ function contact() {
   if (!reduce()) gsap.fromTo(follow, { scaleX: 0 }, { scaleX: 1, ease: 'none', scrollTrigger: { trigger: box, start: 'top 85%', end: 'top 45%', scrub: 0.5 } });
 }
 
+/* ------------------------------------------------------------------ closing: the tools evolve / the thinking stays
+   quiet black → THE TOOLS → EVOLVE. → pause → first statement recedes → THE THINKING → STAYS. */
+function toolsThinking() {
+  const tt = document.querySelector<HTMLElement>('[data-tt]');
+  if (!tt || reduce()) return;
+  const stage = tt.querySelector<HTMLElement>('.tt-stage')!;
+  const A = tt.querySelector<HTMLElement>('[data-tt-a]')!;
+  const B = tt.querySelector<HTMLElement>('[data-tt-b]')!;
+  const [a1, a2] = [...A.querySelectorAll<HTMLElement>('[data-tt-w]')];
+  const [b1, b2] = [...B.querySelectorAll<HTMLElement>('[data-tt-w]')];
+  tt.classList.add('is-live');
+  const css = getComputedStyle(document.documentElement);
+  const bone = css.getPropertyValue('--bone').trim() || '#ece8df';
+  const graphite = css.getPropertyValue('--graphite').trim() || '#494949';
+  const acid = css.getPropertyValue('--acid').trim() || '#d7ff00';
+  // A sits alone in the centre first, then makes room for B
+  const centre = () => (B.offsetHeight + parseFloat(getComputedStyle(stage).rowGap || '0')) / 2;
+  gsap.set(A, { color: bone });
+  gsap.set(b2, { color: bone });
+  const enter = { yPercent: 0, letterSpacing: '-0.004em', ease: 'expo.out', duration: 0.13 };
+  gsap.timeline({
+    scrollTrigger: { trigger: stage, pin: true, start: 'top top', end: '+=190%', scrub: 0.7, anticipatePin: 1, invalidateOnRefresh: true },
+  })
+    .fromTo(A, { y: centre }, { y: centre, duration: 0.001 }, 0)
+    .fromTo(B, { y: () => centre() * 0.5, scale: 1.03, transformOrigin: '0 0' }, { y: 0, scale: 1, ease: 'power3.out', duration: 0.18 }, 0.56)
+    .fromTo(a1, { yPercent: 108, letterSpacing: '0.09em' }, { ...enter }, 0.06)
+    .fromTo(a2, { yPercent: 108, letterSpacing: '0.09em' }, { ...enter }, 0.22)
+    // pause 0.35 → 0.46, then the first statement shifts up, recedes and turns graphite
+    .to(A, { y: 0, scale: 0.9, color: graphite, ease: 'power2.inOut', duration: 0.16 }, 0.46)
+    .fromTo(b1, { yPercent: 108, letterSpacing: '0.09em' }, { ...enter }, 0.6)
+    .fromTo(b2, { yPercent: 108, letterSpacing: '0.09em' }, { ...enter }, 0.74)
+    .to(b2, { color: acid, ease: 'none', duration: 0.06 }, 0.84)
+    .to({}, { duration: 0.1 }, 0.9);
+}
+
+/* ------------------------------------------------------------------ closing cassette: a physical object, softly */
+function cassette(): Cleanup {
+  const fig = document.querySelector<HTMLElement>('[data-cassette]');
+  const tilt = fig?.querySelector<HTMLElement>('[data-cas-tilt]');
+  if (!fig || !tilt || reduce()) return () => {};
+  const glare = tilt.querySelector<HTMLElement>('.cas-glare')!;
+  const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
+  if (!fine) {
+    // touch: a very small tilt as it scrolls past, no pointer, no gyroscope
+    const tw = gsap.fromTo(tilt, { rotationX: 5, rotationY: -3 }, { rotationX: -4, rotationY: 2, ease: 'none',
+      scrollTrigger: { trigger: fig, start: 'top bottom', end: 'bottom top', scrub: 0.8 } });
+    return () => { tw.scrollTrigger?.kill(); tw.kill(); };
+  }
+  const rx = gsap.quickTo(tilt, 'rotationX', { duration: 1.1, ease: 'power3.out' });
+  const ry = gsap.quickTo(tilt, 'rotationY', { duration: 1.1, ease: 'power3.out' });
+  const tz = gsap.quickTo(tilt, 'z', { duration: 1.1, ease: 'power3.out' });
+  const go = gsap.quickTo(glare, 'opacity', { duration: 0.8, ease: 'power2.out' });
+  const zone = fig.closest<HTMLElement>('.end') ?? fig;
+  const move = (e: PointerEvent) => {
+    const r = fig.getBoundingClientRect();
+    const reach = Math.max(r.width, 260) * 1.6;
+    const nx = Math.max(-1, Math.min(1, (e.clientX - (r.left + r.width / 2)) / reach));
+    const ny = Math.max(-1, Math.min(1, (e.clientY - (r.top + r.height / 2)) / reach));
+    ry(nx * 8); rx(-ny * 5); tz(10);
+    go(0.9 - Math.min(0.6, Math.hypot(nx, ny) * 0.5));
+    glare.style.setProperty('--gx', `${50 + nx * 40}%`);
+    glare.style.setProperty('--gy', `${40 + ny * 40}%`);
+  };
+  const leave = () => { rx(0); ry(0); tz(0); go(0); };
+  zone.addEventListener('pointermove', move);
+  zone.addEventListener('pointerleave', leave);
+  return () => { zone.removeEventListener('pointermove', move); zone.removeEventListener('pointerleave', leave); gsap.killTweensOf([tilt, glare]); };
+}
+
 /* ------------------------------------------------------------------ case pages: project tone */
 function caseTone() {
   const body = document.querySelector<HTMLElement>('[data-case-body]');
@@ -314,7 +482,10 @@ let cleanups: Cleanup[] = [];
 export function mountPage() {
   const home = document.body.classList.contains('home');
   cleanups.push(reveals());
+  // pinned sections first, in page order: every trigger created afterwards is measured with their pin spacing
+  cleanups.push(typeSequences());
   ctx = gsap.context(() => {
+    toolsThinking();
     opening(home);
     tapeDraws();
     chain();
@@ -323,16 +494,25 @@ export function mountPage() {
     cleanups.push(valu());
     nescafe();
     compare();
-    typeReveals();
     contact();
     caseTone();
   });
+  cleanups.push(cassette());
   cleanups.push(films());
   // replay → rewind to the start
   document.querySelectorAll<HTMLElement>('[data-replay]').forEach((a) => a.addEventListener('click', (e) => {
     e.preventDefault(); scrollTo({ top: 0, behavior: reduce() ? 'auto' : 'smooth' });
   }));
   const refresh = () => { ScrollTrigger.refresh(); refreshTape(); };
+  // if anything above a pin changes height after load (late media, fonts), re-measure once it settles
+  let lastH = document.body.scrollHeight, rt = 0;
+  const ro = new ResizeObserver(() => {
+    const h = document.body.scrollHeight;
+    if (Math.abs(h - lastH) < 4) return;
+    lastH = h; clearTimeout(rt); rt = window.setTimeout(() => { refresh(); lastH = document.body.scrollHeight; }, 250);
+  });
+  ro.observe(document.body);
+  cleanups.push(() => { ro.disconnect(); clearTimeout(rt); });
   document.fonts?.ready.then(refresh);
   addEventListener('load', refresh, { once: true });
   setTimeout(refresh, 800);

@@ -1,21 +1,30 @@
 /**
  * Full-film player. Films only load and play with sound after an intentional click.
- * Drag across the picture to scrub; click to pause or resume; Esc closes.
+ * The frame is sized from the film's own ratio (never stretched): at most 90vw × 82vh, centred, black around it.
+ * Click the picture to pause or resume; drag the timeline to scrub; Esc closes.
  */
 let theater: HTMLElement | null = null;
 let video: HTMLVideoElement;
 let opener: HTMLElement | null = null;
+let ratio = 16 / 9;
+let layout = () => {};
 
-const fmt = (t: number) => `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
+const fmt = (t: number) => {
+  if (!isFinite(t) || t < 0) t = 0;
+  return `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
+};
 
 export function openFilm(src: string, title: string, from?: HTMLElement) {
   if (!theater) return;
   opener = from ?? null;
+  const w = Number(from?.dataset.filmW), h = Number(from?.dataset.filmH);
+  ratio = w && h ? w / h : 16 / 9;
   theater.querySelector('[data-theater-title]')!.textContent = title;
-  video.src = src;
   theater.hidden = false;
   document.documentElement.style.overflow = 'hidden';
-  video.currentTime = 0;
+  layout();
+  video.src = src;
+  video.muted = false;
   video.play().catch(() => {});
   theater.querySelector<HTMLButtonElement>('[data-theater-close]')!.focus();
   dispatchEvent(new CustomEvent('films:pause-previews'));
@@ -35,70 +44,125 @@ export function closeFilm() {
 export function initTheater() {
   theater = document.querySelector<HTMLElement>('.theater');
   if (!theater) return;
-  video = theater.querySelector('[data-theater-video]')!;
-  const fill = theater.querySelector<HTMLElement>('[data-theater-fill]')!;
-  const line = theater.querySelector<HTMLElement>('[data-theater-line]')!;
-  const time = theater.querySelector<HTMLElement>('[data-theater-time]')!;
-  const toggle = theater.querySelector<HTMLButtonElement>('[data-theater-toggle]')!;
-  const surface = theater.querySelector<HTMLElement>('[data-scrub-surface]')!;
+  const th = theater;
+  video = th.querySelector('[data-theater-video]')!;
+  const screen = th.querySelector<HTMLElement>('[data-theater-screen]')!;
+  const frame = th.querySelector<HTMLElement>('[data-theater-frame]')!;
+  const surface = th.querySelector<HTMLElement>('[data-scrub-surface]')!;
+  const controls = th.querySelector<HTMLElement>('.scrub')!;
+  const fill = th.querySelector<HTMLElement>('[data-theater-fill]')!;
+  const buf = th.querySelector<HTMLElement>('[data-theater-buf]')!;
+  const knob = th.querySelector<HTMLElement>('[data-theater-knob]')!;
+  const line = th.querySelector<HTMLElement>('[data-theater-line]')!;
+  const cur = th.querySelector<HTMLElement>('[data-theater-cur]')!;
+  const dur = th.querySelector<HTMLElement>('[data-theater-dur]')!;
+  const toggle = th.querySelector<HTMLButtonElement>('[data-theater-toggle]')!;
+  const mute = th.querySelector<HTMLButtonElement>('[data-theater-mute]')!;
 
-  const sync = () => {
-    const d = video.duration || 1;
-    fill.style.width = `${(video.currentTime / d) * 100}%`;
-    line.setAttribute('aria-valuenow', String(Math.round((video.currentTime / d) * 100)));
-    time.textContent = `${fmt(video.currentTime)} / ${fmt(video.duration || 0)}`;
+  // fit the picture inside min(90vw, screen) × min(82vh, screen minus controls) at its true ratio
+  layout = () => {
+    if (th.hidden) return;
+    const sw = screen.clientWidth, sh = screen.clientHeight - controls.offsetHeight - 14;
+    const maxW = Math.min(sw, innerWidth * (innerWidth < 761 ? 1 : 0.9));
+    const maxH = Math.max(120, Math.min(sh, innerHeight * 0.82));
+    let w = maxW, h = w / ratio;
+    if (h > maxH) { h = maxH; w = h * ratio; }
+    surface.style.width = `${Math.round(w)}px`;
+    surface.style.height = `${Math.round(h)}px`;
+    frame.style.width = `${Math.max(Math.round(w), Math.min(sw, 340))}px`;
   };
-  video.addEventListener('timeupdate', sync);
-  video.addEventListener('loadedmetadata', sync);
-  video.addEventListener('play', () => (toggle.textContent = 'Pause'));
-  video.addEventListener('pause', () => (toggle.textContent = 'Play'));
-  video.addEventListener('ended', () => (toggle.textContent = 'Replay'));
-  toggle.addEventListener('click', () => (video.paused ? video.play() : video.pause()));
-  theater.querySelector('[data-theater-close]')!.addEventListener('click', closeFilm);
+  addEventListener('resize', layout);
+  addEventListener('orientationchange', layout);
 
+  let dragging = false;
+  const sync = () => {
+    const d = video.duration;
+    const p = d && isFinite(d) ? video.currentTime / d : 0;
+    fill.style.transform = `scaleX(${p})`;
+    knob.style.left = `${p * 100}%`;
+    line.setAttribute('aria-valuenow', String(Math.round(p * 100)));
+    line.setAttribute('aria-valuetext', `${fmt(video.currentTime)} of ${fmt(d)}`);
+    cur.textContent = fmt(video.currentTime);
+    dur.textContent = fmt(d);
+  };
+  const buffered = () => {
+    const d = video.duration;
+    if (!d || !isFinite(d) || !video.buffered.length) return;
+    buf.style.transform = `scaleX(${video.buffered.end(video.buffered.length - 1) / d})`;
+  };
+  const setToggle = (label: string) => { toggle.textContent = label; toggle.setAttribute('aria-label', label); };
+  video.addEventListener('timeupdate', sync);
+  video.addEventListener('durationchange', sync);
+  video.addEventListener('progress', buffered);
+  video.addEventListener('loadedmetadata', () => {
+    if (video.videoWidth && video.videoHeight) ratio = video.videoWidth / video.videoHeight;
+    layout(); sync(); buffered();
+  });
+  video.addEventListener('emptied', () => { fill.style.transform = 'scaleX(0)'; buf.style.transform = 'scaleX(0)'; knob.style.left = '0%'; cur.textContent = dur.textContent = '00:00'; });
+  video.addEventListener('play', () => { setToggle('Pause'); th.classList.remove('is-paused'); });
+  video.addEventListener('pause', () => { if (!dragging) { setToggle('Play'); th.classList.add('is-paused'); } });
+  video.addEventListener('ended', () => setToggle('Replay'));
+  video.addEventListener('volumechange', () => {
+    mute.textContent = video.muted ? 'Sound off' : 'Sound on';
+    mute.setAttribute('aria-pressed', String(video.muted));
+  });
+
+  const playPause = () => (video.paused || video.ended ? video.play().catch(() => {}) : video.pause());
+  toggle.addEventListener('click', playPause);
+  mute.addEventListener('click', () => { video.muted = !video.muted; });
+  th.querySelector('[data-theater-close]')!.addEventListener('click', closeFilm);
+
+  // timeline: click or drag to scrub (pointer events work for mouse, pen and touch in Safari and Chrome)
   const seekTo = (clientX: number) => {
     const r = line.getBoundingClientRect();
-    video.currentTime = Math.min(1, Math.max(0, (clientX - r.left) / r.width)) * (video.duration || 0);
+    const d = video.duration;
+    if (!d || !isFinite(d)) return;
+    video.currentTime = Math.min(1, Math.max(0, (clientX - r.left) / r.width)) * d;
+    sync();
   };
+  let wasPlaying = false;
   line.addEventListener('pointerdown', (e) => {
-    seekTo(e.clientX);
+    e.preventDefault();
+    dragging = true; wasPlaying = !video.paused;
+    th.classList.add('is-scrubbing');
     line.setPointerCapture(e.pointerId);
-    const mv = (ev: PointerEvent) => seekTo(ev.clientX);
-    line.addEventListener('pointermove', mv);
-    line.addEventListener('pointerup', () => line.removeEventListener('pointermove', mv), { once: true });
+    video.pause();
+    seekTo(e.clientX);
   });
+  line.addEventListener('pointermove', (e) => { if (dragging) seekTo(e.clientX); });
+  const end = () => {
+    if (!dragging) return;
+    dragging = false;
+    th.classList.remove('is-scrubbing');
+    if (wasPlaying) video.play().catch(() => {}); else { setToggle('Play'); th.classList.add('is-paused'); }
+  };
+  line.addEventListener('pointerup', end);
+  line.addEventListener('pointercancel', end);
+  line.addEventListener('lostpointercapture', end);
   line.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowRight') video.currentTime = Math.min(video.duration, video.currentTime + 5);
-    if (e.key === 'ArrowLeft') video.currentTime = Math.max(0, video.currentTime - 5);
+    const d = video.duration || 0;
+    if (e.key === 'ArrowRight') { e.preventDefault(); video.currentTime = Math.min(d, video.currentTime + 5); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); video.currentTime = Math.max(0, video.currentTime - 5); }
+    if (e.key === 'Home') { e.preventDefault(); video.currentTime = 0; }
+    if (e.key === 'End') { e.preventDefault(); video.currentTime = Math.max(0, d - 0.1); }
   });
 
-  // scrub by dragging across the picture; a plain click toggles playback
-  let sx = 0, st = 0, moved = false, down = false, wasPlaying = false;
-  surface.addEventListener('pointerdown', (e) => {
-    if (e.target !== video && e.target !== surface) return;
-    down = true; moved = false; sx = e.clientX; st = video.currentTime; wasPlaying = !video.paused;
-    surface.setPointerCapture(e.pointerId);
-  });
-  surface.addEventListener('pointermove', (e) => {
-    if (!down) return;
-    const dx = e.clientX - sx;
-    if (Math.abs(dx) > 6) {
-      if (!moved) { moved = true; video.pause(); }
-      const span = Math.max(8, (video.duration || 30) * 0.6);
-      video.currentTime = Math.min(video.duration || 0, Math.max(0, st + (dx / surface.clientWidth) * span));
-    }
-  });
-  surface.addEventListener('pointerup', () => {
-    if (!down) return;
-    down = false;
-    if (!moved) video.paused ? video.play() : video.pause();
-    else if (wasPlaying) video.play();
-  });
+  // a click on the picture toggles playback
+  surface.addEventListener('click', playPause);
 
   addEventListener('keydown', (e) => {
-    if (theater!.hidden) return;
+    if (th.hidden) return;
     if (e.key === 'Escape') closeFilm();
-    if (e.key === ' ' && document.activeElement?.tagName !== 'BUTTON') { e.preventDefault(); video.paused ? video.play() : video.pause(); }
+    const tag = document.activeElement?.tagName;
+    if (e.key === ' ' && tag !== 'BUTTON' && document.activeElement !== line) { e.preventDefault(); playPause(); }
+    if ((e.key === 'm' || e.key === 'M') && !e.metaKey && !e.ctrlKey) video.muted = !video.muted;
+    if (e.key === 'Tab') {
+      const f = [...th.querySelectorAll<HTMLElement>('button, [tabindex="0"]')].filter((x) => x.offsetParent !== null);
+      if (!f.length) return;
+      const first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
   });
   document.addEventListener('click', (e) => {
     const t = (e.target as Element).closest<HTMLElement>('[data-film]');

@@ -127,7 +127,7 @@ export const FILMS: Film[] = [
     n: '01', id: 'the-question', title: 'THE QUESTION', kind: 'PERSONAL SHORT FILM / 2026',
     text: 'A personal film about questioning where I am, what I know, and how much further I still have to go.',
     loop: 'the-question-loop', loopSizes: [960, 1600], film: 'the-question-film', filmSize: 1920,
-    poster: 'the-question-poster', stills: ['the-question-poster-eyes', 'the-question-poster-stairs', 'the-question-poster-mirror'], mood: 'quiet',
+    poster: 'the-question-poster', stills: ['the-question-poster-stairs', 'the-question-poster-mirror'], mood: 'quiet',
   },
   {
     n: '02', id: 'mini-showreel', title: 'MINI SHOWREEL', kind: 'PERSONAL SHOWREEL / 2026',

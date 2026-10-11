@@ -1,6 +1,5 @@
 ---
 import Arrow from './Arrow.astro';
-import Img from './Img.astro';
 import { SITE } from '../data/site';
 const links = [
   { k: 'Email', v: SITE.email, href: `mailto:${SITE.email}`, cursor: 'CONNECT →', ext: false },
@@ -10,7 +9,18 @@ const links = [
 ];
 ---
 <section class="closing wrap" id="contact" data-section data-track="SIDE B" data-label="END OF TAPE" aria-labelledby="close-h">
-  <p class="tools display" data-reveal><span class="acid">Tools evolve.</span><br /><span class="dim">Thinking stays.</span></p>
+  <div class="tt" data-tt>
+    <div class="tt-stage">
+      <p class="tt-st tt-a display dim" data-tt-a>
+        <span class="m"><span class="w" data-tt-w>The tools</span></span>
+        <span class="m"><span class="w" data-tt-w>evolve.</span></span>
+      </p>
+      <p class="tt-st tt-b display" data-tt-b>
+        <span class="m"><span class="w" data-tt-w>The thinking</span></span>
+        <span class="m"><span class="w acid" data-tt-w data-tt-accent>stays.</span></span>
+      </p>
+    </div>
+  </div>
   <p class="ends display" data-reveal>Tape ends.<br /><span class="dim">The work doesn’t.</span></p>
 
   <h2 class="lets display" id="close-h" data-reveal><span>Let’s create</span><br /><span class="acid">something.</span></h2>
@@ -41,7 +51,13 @@ const links = [
       <p class="thanks display">Thanks for listening.</p>
       <p class="mono quiet" style="margin-top:14px">End of tape / 2026</p>
     </div>
-    <figure class="cassette" style="margin:0" aria-hidden="true"><Img id="closing-cassette" alt="" sizes="240px" fit="contain" /></figure>
+    <figure class="cassette" style="margin:0" aria-hidden="true" data-cassette>
+      <div class="cas-tilt" data-cas-tilt>
+        <img class="cas-base" src="/media/img/cassette-base.webp" width="800" height="1154" alt="" loading="lazy" decoding="async" />
+        <img class="cas-lime" src="/media/img/cassette-lime.webp" width="800" height="1154" alt="" loading="lazy" decoding="async" />
+        <span class="cas-glare"></span>
+      </div>
+    </figure>
     <a class="replay mono" href="#top" data-replay data-cursor="REWIND">Replay <svg class="arrow" viewBox="0 0 16 16" width="0.9em" height="0.9em" aria-hidden="true"><path d="M13 8a5 5 0 1 1-1.5-3.6" fill="none" stroke="currentColor" stroke-width="1.4" /><path d="M11.8 1.6v3.3H8.5" fill="none" stroke="currentColor" stroke-width="1.4" /></svg></a>
   </div>
 </section>

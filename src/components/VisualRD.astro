@@ -4,6 +4,9 @@ import Arrow from './Arrow.astro';
 import { FILMS } from '../data/site';
 import { poster, video } from '../lib/media';
 const F = FILMS.map((f) => ({ ...f, p: poster(f.poster), loops: video(f.loop), full: video(f.film)[0], stillP: f.stills.map(poster) }));
+// every frame is sized from the media's real dimensions
+const r = (m: { width: number; height: number }) => (m.width / m.height).toFixed(4);
+const film = (f: (typeof F)[number], n: string) => ({ 'data-film': f.full.mp4, 'data-film-title': `${n} / ${f.title}`, 'data-film-w': f.full.w, 'data-film-h': f.full.h });
 const [q, mini, mac] = F;
 const sources = (f: (typeof F)[number]) => JSON.stringify(f.loops.map((l) => ({ size: l.size, mp4: l.mp4, webm: l.webm })));
 ---
@@ -11,7 +14,7 @@ const sources = (f: (typeof F)[number]) => JSON.stringify(f.loops.map((l) => ({ 
 <div class="rd" data-section data-track="TRACK 05" data-label="VISUAL R&D">
   <!-- 01 / THE QUESTION: quiet, wide, slow -->
   <article class="film film--quiet wrap" aria-labelledby="f-q">
-    <button class="player" type="button" data-loop={sources(q)} data-film={q.full.mp4} data-film-title={`05.01 / ${q.title}`} data-cursor="PLAY" aria-label={`Play ${q.title}, full film with sound`}>
+    <button class="player" type="button" style={`--r:${r(q.p)}`} data-loop={sources(q)} {...film(q, '05.01')} data-cursor="PLAY" aria-label={`Play ${q.title}, full film with sound`}>
       <picture><source type="image/avif" srcset={q.p.avif} /><img src={q.p.webp} alt="" width={q.p.width} height={q.p.height} loading="lazy" decoding="async" /></picture>
       <video muted loop playsinline preload="none" aria-hidden="true"></video>
       <span class="pp mono micro"><i></i>Rec. / preview</span>
@@ -21,11 +24,16 @@ const sources = (f: (typeof F)[number]) => JSON.stringify(f.loops.map((l) => ({ 
       <div class="side">
         <span class="meta">{q.kind}</span>
         <p class="body">{q.text}</p>
-        <button class="watch meta" type="button" data-film={q.full.mp4} data-film-title={`05.01 / ${q.title}`} data-cursor="PLAY"><span class="u">Watch the film</span> <Arrow dir="ne" /></button>
+        <button class="watch meta" type="button" {...film(q, '05.01')} data-cursor="PLAY"><span class="u">Watch the film</span> <Arrow dir="ne" /></button>
       </div>
     </div>
     <div class="stills">
-      {q.stillP.map((s) => <picture data-reveal><source type="image/avif" srcset={s.avif} /><img src={s.webp} alt="" width={s.width} height={s.height} loading="lazy" decoding="async" /></picture>)}
+      {q.stillP.map((st, i) => (
+        <figure class="still" data-reveal style={`--r:${r(st)}`}>
+          <div class="fr"><picture><source type="image/avif" srcset={st.avif} /><img src={st.webp} alt={`${q.title}, film still ${i + 1}`} width={st.width} height={st.height} loading="lazy" decoding="async" /></picture></div>
+          <figcaption class="mono micro"><span>Still {String(i + 1).padStart(2, '0')}</span><span>2.65 : 1</span></figcaption>
+        </figure>
+      ))}
     </div>
   </article>
 
@@ -37,7 +45,7 @@ const sources = (f: (typeof F)[number]) => JSON.stringify(f.loops.map((l) => ({ 
         <span class="frames" data-frame-counter>0000</span>
         <span class="mono micro quiet">30 fps / 00:15</span>
       </div>
-      <button class="player" type="button" data-loop={sources(mini)} data-film={mini.full.mp4} data-film-title={`05.02 / ${mini.title}`} data-counter data-cursor="PLAY" aria-label={`Play ${mini.title}, full film with sound`}>
+      <button class="player" type="button" style={`--r:${r(mini.p)}`} data-loop={sources(mini)} {...film(mini, '05.02')} data-counter data-cursor="PLAY" aria-label={`Play ${mini.title}, full film with sound`}>
         <picture><source type="image/avif" srcset={mini.p.avif} /><img src={mini.p.webp} alt="" width={mini.p.width} height={mini.p.height} loading="lazy" decoding="async" /></picture>
         <video muted loop playsinline preload="none" aria-hidden="true"></video>
         <span class="pp mono micro"><i></i>Rec. / preview</span>
@@ -48,7 +56,7 @@ const sources = (f: (typeof F)[number]) => JSON.stringify(f.loops.map((l) => ({ 
       <div class="side">
         <span class="meta">{mini.kind}</span>
         <p class="body">{mini.text}</p>
-        <button class="watch meta" type="button" data-film={mini.full.mp4} data-film-title={`05.02 / ${mini.title}`} data-cursor="PLAY"><span class="u">Watch the film</span> <Arrow dir="ne" /></button>
+        <button class="watch meta" type="button" {...film(mini, '05.02')} data-cursor="PLAY"><span class="u">Watch the film</span> <Arrow dir="ne" /></button>
       </div>
     </div>
   </article>
@@ -61,7 +69,7 @@ const sources = (f: (typeof F)[number]) => JSON.stringify(f.loops.map((l) => ({ 
         <h3 class="display" id="f-c" style="font-size:var(--t-m)">{mac.title}</h3>
         <span class="meta">{mac.kind}</span>
       </div>
-      <button class="player" type="button" data-loop={sources(mac)} data-film={mac.full.mp4} data-film-title={`05.03 / ${mac.title}`} data-cursor="PLAY" aria-label={`Play ${mac.title}, full film with sound`}>
+      <button class="player" type="button" style={`--r:${r(mac.p)}`} data-loop={sources(mac)} {...film(mac, '05.03')} data-cursor="PLAY" aria-label={`Play ${mac.title}, full film with sound`}>
         <picture><source type="image/avif" srcset={mac.p.avif} /><img src={mac.p.webp} alt="" width={mac.p.width} height={mac.p.height} loading="lazy" decoding="async" /></picture>
         <video muted loop playsinline preload="none" aria-hidden="true"></video>
         <span class="pp mono micro"><i></i>Rec. / preview</span>
@@ -72,7 +80,7 @@ const sources = (f: (typeof F)[number]) => JSON.stringify(f.loops.map((l) => ({ 
           <dt>Format</dt><dd>9:16 / 1080 × 1920</dd>
           <dt>Running time</dt><dd>00:16</dd>
         </dl>
-        <button class="watch meta" type="button" data-film={mac.full.mp4} data-film-title={`05.03 / ${mac.title}`} data-cursor="PLAY"><span class="u">Watch the film</span> <Arrow dir="ne" /></button>
+        <button class="watch meta" type="button" {...film(mac, '05.03')} data-cursor="PLAY"><span class="u">Watch the film</span> <Arrow dir="ne" /></button>
       </div>
     </div>
   </article>

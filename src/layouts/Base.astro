@@ -129,13 +129,19 @@ const person = {
         <span id="theater-title" data-theater-title>Film</span>
         <button type="button" class="meta ctl" data-theater-close data-cursor="CLOSE">Close <span aria-hidden="true">×</span></button>
       </div>
-      <div class="screen" data-cursor="SCRUB" data-scrub-surface>
-        <video playsinline preload="none" data-theater-video></video>
-      </div>
-      <div class="scrub mono">
-        <button type="button" class="ctl mono" data-theater-toggle>Pause</button>
-        <div class="line" data-theater-line role="slider" aria-label="Seek" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span class="fill" data-theater-fill></span></div>
-        <span data-theater-time>00:00</span>
+      <div class="screen" data-theater-screen>
+        <div class="frame" data-theater-frame>
+          <div class="surface" data-cursor="PLAY / PAUSE" data-scrub-surface>
+            <video playsinline preload="none" data-theater-video></video>
+          </div>
+          <div class="scrub mono">
+            <button type="button" class="ctl mono" data-theater-toggle aria-label="Pause">Pause</button>
+            <span class="t-cur" data-theater-cur>00:00</span>
+            <div class="line" data-theater-line role="slider" aria-label="Seek" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="00:00"><span class="buf" data-theater-buf></span><span class="fill" data-theater-fill></span><span class="knob" data-theater-knob></span></div>
+            <span class="t-dur" data-theater-dur>00:00</span>
+            <button type="button" class="ctl mono" data-theater-mute aria-pressed="false">Sound on</button>
+          </div>
+        </div>
       </div>
     </div>
 

@@ -62,6 +62,8 @@ const person = {
         document.documentElement.classList.add('has-cursor');
     </script>
     <ClientRouter fallback="swap" />
+    <!-- Cloudflare Web Analytics (cookieless; follows client-side page changes automatically) -->
+    <script is:inline defer type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "ed561bc2b9c74ed3a683671c897e3597"}'></script>
   </head>
   <body class={pageClass} data-side={side}>
     <a class="skip meta" href="#main">Skip to content</a>

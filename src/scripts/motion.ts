@@ -429,11 +429,17 @@ function toolsThinking() {
   gsap.set(A, { color: bone });
   gsap.set(b2, { color: bone });
   const enter = { yPercent: 0, letterSpacing: '-0.004em', ease: 'expo.out', duration: 0.13 };
+  // the section only releases once both statements have cleared: nothing from it is left on screen
+  // when "Tape ends." and the contact follow. onLeave snaps to the end state if the scroll outruns the scrub.
   gsap.timeline({
-    scrollTrigger: { trigger: stage, pin: true, start: 'top top', end: '+=190%', scrub: 0.7, anticipatePin: 1, invalidateOnRefresh: true },
+    scrollTrigger: {
+      trigger: stage, pin: true, pinSpacing: true, start: 'top top', end: '+=235%', scrub: 0.5,
+      anticipatePin: 1, invalidateOnRefresh: true,
+      onLeave: (self) => { self.animation?.progress(1); },
+    },
   })
-    .fromTo(A, { y: centre }, { y: centre, duration: 0.001 }, 0)
-    .fromTo(B, { y: () => centre() * 0.5, scale: 1.03, transformOrigin: '0 0' }, { y: 0, scale: 1, ease: 'power3.out', duration: 0.18 }, 0.56)
+    .fromTo(A, { y: centre, opacity: 1 }, { y: centre, duration: 0.001 }, 0)
+    .fromTo(B, { y: () => centre() * 0.5, scale: 1.03, transformOrigin: '0 0', opacity: 1 }, { y: 0, scale: 1, ease: 'power3.out', duration: 0.18 }, 0.56)
     .fromTo(a1, { yPercent: 108, letterSpacing: '0.09em' }, { ...enter }, 0.06)
     .fromTo(a2, { yPercent: 108, letterSpacing: '0.09em' }, { ...enter }, 0.22)
     // pause 0.35 → 0.46, then the first statement shifts up, recedes and turns graphite
@@ -441,7 +447,10 @@ function toolsThinking() {
     .fromTo(b1, { yPercent: 108, letterSpacing: '0.09em' }, { ...enter }, 0.6)
     .fromTo(b2, { yPercent: 108, letterSpacing: '0.09em' }, { ...enter }, 0.74)
     .to(b2, { color: acid, ease: 'none', duration: 0.06 }, 0.84)
-    .to({}, { duration: 0.1 }, 0.9);
+    // STAYS. holds, then the section clears: the first statement disappears, the second lifts away
+    .to(A, { opacity: 0, y: () => -innerHeight * 0.04, ease: 'power2.in', duration: 0.12 }, 0.96)
+    .to(B, { opacity: 0, y: () => -innerHeight * 0.06, ease: 'power2.in', duration: 0.14 }, 1.04)
+    .to({}, { duration: 0.06 }, 1.18);
 }
 
 /* ------------------------------------------------------------------ closing cassette: a physical object, softly

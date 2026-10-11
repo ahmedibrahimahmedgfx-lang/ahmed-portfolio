@@ -162,8 +162,8 @@ export const PROJECTS: Record<string, Project> = {
     tagline: 'A Halloween concept turning everyday installments into oversized fears through product shadows.',
     statement: ['THE FEAR FEELS BIGGER', 'THAN THE PAYMENT.'],
     year: 'SPEC CAMPAIGN / 2026',
-    cover: 'valu-kv-clean',
-    preview: 'valu-kv-clean',
+    cover: 'valu-kv',
+    preview: 'valu-kv',
     interaction: 'valu',
     blocks: [
       { label: '01 / THE CHALLENGE', lead: 'How can valU enter the Halloween conversation without forcing a seasonal visual onto the brand?', text: '' },
@@ -176,7 +176,7 @@ export const PROJECTS: Record<string, Project> = {
       { label: '03 / MOOD', text: 'A monochromatic orange world, hard directional light and exaggerated scale create Halloween tension without relying on cliché horror graphics.' },
     ],
     chapters: [
-      { label: 'KEY VISUAL', frames: [F('valu-kv', 'full', 'valU Halloween key visual: a small figure on the valU asterisk under a giant shadow')] },
+      { label: 'KEY VISUAL', frames: [F('valu-kv-clean', 'full', 'valU Halloween key visual, second execution: a small figure on the valU asterisk under an oversized product shadow')] },
       { label: 'OUT OF HOME', frames: [F('valu-ooh-street', 'half', 'valU street poster'), F('valu-ooh-night', 'half', 'valU billboard at night')] },
     ],
     tone: { bg: '#1c0702', ink: '#ffe9df', accent: '#ff5a1f', dim: '#b7816b' },

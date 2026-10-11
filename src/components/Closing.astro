@@ -55,8 +55,10 @@ const links = [
     <div class="cassette-slot" aria-hidden="true" data-cassette>
       <div class="cassette-perspective">
         <div class="cassette-object" data-cas-tilt>
-          <img class="cas-base" src="/media/img/cassette-base.webp" width="800" height="1154" alt="" loading="lazy" decoding="async" />
-          <img class="cas-lime" src="/media/img/cassette-lime.webp" width="800" height="1154" alt="" loading="lazy" decoding="async" />
+          <picture>
+            <source type="image/avif" srcset="/media/img/closing-cassette-master-720.avif 720w, /media/img/closing-cassette-master-1100.avif 1100w" sizes="(max-width: 760px) 68vw, 340px" />
+            <img class="cas-art" src="/media/img/closing-cassette-master-720.webp" srcset="/media/img/closing-cassette-master-720.webp 720w, /media/img/closing-cassette-master-1100.webp 1100w" sizes="(max-width: 760px) 68vw, 340px" width="1100" height="1790" alt="" loading="lazy" decoding="async" />
+          </picture>
           <span class="cas-glare"></span>
         </div>
       </div>

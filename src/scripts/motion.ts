@@ -26,33 +26,51 @@ function reveals(): Cleanup {
   return () => io.disconnect();
 }
 
-/* ------------------------------------------------------------------ opening + PRESS PLAY */
+/* ------------------------------------------------------------------ opening + PRESS PLAY
+   Title sequence (about 1.9s, never blocks scrolling), same family as the closing statements:
+   AHMED rises from its mask → IBRAHIM follows from a slight offset → SELECTED → RECORDINGS
+   → metadata → PRESS PLAY: label, then the line draws, then the arrow. Large blocks, no per-letter motion. */
 function opening(home: boolean) {
   const open = document.querySelector<HTMLElement>('.opening');
   if (!open || !home) { setTapeActive(true); return; }
+  open.classList.add('intro-live');
   const shaft = open.querySelector<HTMLElement>('[data-play-shaft]');
   const head = open.querySelector<HTMLElement>('[data-play-head]');
   const label = open.querySelector<HTMLElement>('.play .label');
   const l1 = open.querySelector<HTMLElement>('[data-name-line="1"]');
   const l2 = open.querySelector<HTMLElement>('[data-name-line="2"]');
-
-  if (reduce()) { setTapeActive(true); return; }
-
-  // first frame: the name slides in from opposite edges (outer line), metadata types on
-  gsap.from([l1, l2], { x: (i) => (i ? 1 : -1) * innerWidth * 0.06, opacity: 0, duration: 1.2, ease: 'expo.out', stagger: 0.08, clearProps: 'transform,opacity' });
-  gsap.from(open.querySelectorAll('.meta-block > div, .side-note'), { opacity: 0, y: 10, duration: 0.8, ease: 'power3.out', stagger: 0.06, delay: 0.25 });
-  gsap.from(shaft, { scaleX: 0, duration: 0.9, ease: 'expo.out', delay: 0.7 });
-
-  // scroll: the two words drift apart a little (inner spans, viewport-relative), then the name settles
-  // and recedes before the hero leaves. Most of both words always stays on screen.
   const i1 = l1?.querySelector<HTMLElement>('.li');
   const i2 = l2?.querySelector<HTMLElement>('.li');
   const name = open.querySelector<HTMLElement>('.name');
-  const travel = () => (innerWidth < 760 ? 0.03 : 0.045) * innerWidth;
+
+  if (reduce()) { open.classList.add('intro-done'); setTapeActive(true); return; }
+  const small = innerWidth < 761;
+
+  const intro = gsap.timeline({ defaults: { ease: 'expo.out' }, onComplete: () => open.classList.add('intro-done') });
+  if (i1 && i2 && l2) {
+    intro
+      .fromTo(i1, { y: 0, yPercent: 115, letterSpacing: small ? '-0.004em' : '0.03em' }, { yPercent: 0, letterSpacing: '-0.004em', duration: 1.05, clearProps: 'letterSpacing' }, 0.05)
+      .fromTo(i2, { y: 0, yPercent: 115, letterSpacing: small ? '-0.004em' : '0.03em' }, { yPercent: 0, letterSpacing: '-0.004em', duration: 1.1, clearProps: 'letterSpacing' }, 0.2)
+      .fromTo(l2, { x: small ? 0 : innerWidth * 0.025 }, { x: 0, duration: 1.3, ease: 'power3.out', clearProps: 'transform' }, 0.2);
+  }
+  intro
+    .fromTo(open.querySelectorAll('[data-intro-title]'), { y: 0, yPercent: 105 }, { yPercent: 0, duration: 0.7, ease: 'power3.out', stagger: 0.11 }, 0.62)
+    .fromTo(open.querySelectorAll('[data-intro-meta]'), { y: 0, yPercent: 105 }, { yPercent: 0, duration: 0.6, ease: 'power3.out' }, 0.86)
+    .fromTo(open.querySelectorAll('[data-intro]'), { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out', stagger: 0.05, clearProps: 'transform' }, 0.9);
+  // PRESS PLAY only plays its entrance from the top; further down, the scroll state owns it
+  if (scrollY < innerHeight * 0.05) intro
+    .fromTo(label, { opacity: 0, x: -10 }, { opacity: 1, x: 0, duration: 0.45, ease: 'power3.out' }, 1.18)
+    .fromTo(shaft, { scaleX: 0 }, { scaleX: 1, duration: 0.6, ease: 'expo.out' }, 1.28)
+    .fromTo(head, { opacity: 0, x: -6 }, { opacity: 1, x: 0, duration: 0.35, ease: 'power2.out' }, 1.55);
+
+  // scroll: the two words pass through depth at different rates (inner spans, viewport-relative).
+  // AHMED drifts left, lifts a little, recedes; IBRAHIM drifts right and lifts faster. Most of both words stays on screen.
+  const travel = () => (small ? 0 : 0.045 * innerWidth);
   if (i1 && i2 && name) gsap.timeline({ scrollTrigger: { trigger: open, start: 'top top', end: 'bottom top', scrub: 0.6, invalidateOnRefresh: true } })
-    .fromTo(i1, { x: 0 }, { x: () => -travel(), ease: 'none', duration: 0.6 }, 0)
-    .fromTo(i2, { x: 0 }, { x: () => travel() * 0.85, ease: 'none', duration: 0.6 }, 0)
-    .fromTo(name, { y: 0, opacity: 1 }, { y: () => -innerHeight * 0.05, opacity: 0.35, ease: 'power1.in', duration: 0.45 }, 0.55);
+    .fromTo(i1, { x: 0, y: 0, scale: 1, opacity: 1 }, { x: () => -travel(), y: () => -innerHeight * 0.025, scale: 0.97, transformOrigin: '0% 100%', ease: 'none', duration: 0.6, immediateRender: false }, 0)
+    .fromTo(i1, { opacity: 1 }, { opacity: 0.55, ease: 'none', duration: 0.4, immediateRender: false }, 0.2)
+    .fromTo(i2, { x: 0, y: 0 }, { x: () => travel() * 0.85, y: () => -innerHeight * 0.055, ease: 'none', duration: 0.6, immediateRender: false }, 0)
+    .fromTo(name, { y: 0, opacity: 1 }, { y: () => -innerHeight * 0.05, opacity: 0.35, ease: 'power1.in', duration: 0.45, immediateRender: false }, 0.55);
 
   // the arrow's shaft stretches across the screen and becomes the tape
   const stretch = () => (innerWidth - (shaft!.getBoundingClientRect().left)) / shaft!.offsetWidth;
@@ -63,10 +81,10 @@ function opening(home: boolean) {
       onEnterBack: () => setTapeActive(false),
     },
   })
-    .to(label, { opacity: 0, x: -20, ease: 'none', duration: 0.3 }, 0)
-    .to(head, { opacity: 0, ease: 'none', duration: 0.2 }, 0)
-    .to(shaft, { scaleX: stretch, ease: 'power2.in', duration: 1 }, 0)
-    .to(shaft, { opacity: 0, duration: 0.15 }, 0.9);
+    .fromTo(label, { opacity: 1, x: 0 }, { opacity: 0, x: -20, ease: 'none', duration: 0.3, immediateRender: false }, 0)
+    .fromTo(head, { opacity: 1 }, { opacity: 0, ease: 'none', duration: 0.2, immediateRender: false }, 0)
+    .fromTo(shaft, { scaleX: 1 }, { scaleX: stretch, ease: 'power2.in', duration: 1, immediateRender: false }, 0)
+    .fromTo(shaft, { opacity: 1 }, { opacity: 0, duration: 0.15, immediateRender: false }, 0.9);
 
   setTapeActive(scrollY > innerHeight * 0.38);
 }
@@ -457,7 +475,7 @@ function cassette(): Cleanup {
     const nx = Math.max(-1, Math.min(1, dx / reach)) * fade;
     const ny = Math.max(-1, Math.min(1, dy / reach)) * fade;
     ry(nx * 7); rx(-ny * 4);      // rotateY -7 → +7, rotateX +4 → -4
-    tx(nx * 4); ty(ny * 3);       // anchored: at most ±4px / ±3px
+    tx(nx * 3); ty(ny * 2);       // anchored: at most ±3px / ±2px
     go(fade * (0.8 - Math.min(0.55, Math.hypot(nx, ny) * 0.5)));
     glare.style.setProperty('--gx', `${50 + nx * 40}%`);
     glare.style.setProperty('--gy', `${40 + ny * 40}%`);

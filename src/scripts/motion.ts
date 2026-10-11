@@ -426,38 +426,46 @@ function toolsThinking() {
     .to({}, { duration: 0.1 }, 0.9);
 }
 
-/* ------------------------------------------------------------------ closing cassette: a physical object, softly */
+/* ------------------------------------------------------------------ closing cassette: a physical object, softly
+   Only .cassette-object moves; the slot holds its place in the grid, so the composition never shifts. */
 function cassette(): Cleanup {
-  const fig = document.querySelector<HTMLElement>('[data-cassette]');
-  const tilt = fig?.querySelector<HTMLElement>('[data-cas-tilt]');
-  if (!fig || !tilt || reduce()) return () => {};
-  const glare = tilt.querySelector<HTMLElement>('.cas-glare')!;
+  const slot = document.querySelector<HTMLElement>('[data-cassette]');
+  const obj = slot?.querySelector<HTMLElement>('[data-cas-tilt]');
+  if (!slot || !obj || reduce()) return () => {};
+  const glare = obj.querySelector<HTMLElement>('.cas-glare')!;
   const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
   if (!fine) {
-    // touch: a very small tilt as it scrolls past, no pointer, no gyroscope
-    const tw = gsap.fromTo(tilt, { rotationX: 5, rotationY: -3 }, { rotationX: -4, rotationY: 2, ease: 'none',
-      scrollTrigger: { trigger: fig, start: 'top bottom', end: 'bottom top', scrub: 0.8 } });
-    return () => { tw.scrollTrigger?.kill(); tw.kill(); };
+    // touch: an extremely small tilt as it scrolls past; no pointer, no gyroscope
+    const tw = gsap.fromTo(obj, { rotationX: 3, rotationY: -1.5 }, { rotationX: -2, rotationY: 1, ease: 'none',
+      scrollTrigger: { trigger: slot, start: 'top bottom', end: 'bottom top', scrub: 0.8 } });
+    return () => { tw.scrollTrigger?.kill(); tw.kill(); gsap.set(obj, { clearProps: 'transform' }); };
   }
-  const rx = gsap.quickTo(tilt, 'rotationX', { duration: 1.1, ease: 'power3.out' });
-  const ry = gsap.quickTo(tilt, 'rotationY', { duration: 1.1, ease: 'power3.out' });
-  const tz = gsap.quickTo(tilt, 'z', { duration: 1.1, ease: 'power3.out' });
-  const go = gsap.quickTo(glare, 'opacity', { duration: 0.8, ease: 'power2.out' });
-  const zone = fig.closest<HTMLElement>('.end') ?? fig;
+  const opts = { duration: 1.2, ease: 'power3.out' };
+  const rx = gsap.quickTo(obj, 'rotationX', opts);
+  const ry = gsap.quickTo(obj, 'rotationY', opts);
+  const tx = gsap.quickTo(obj, 'x', opts);
+  const ty = gsap.quickTo(obj, 'y', opts);
+  const go = gsap.quickTo(glare, 'opacity', { duration: 0.9, ease: 'power2.out' });
+  const zone = slot.closest<HTMLElement>('.closing') ?? slot;
   const move = (e: PointerEvent) => {
-    const r = fig.getBoundingClientRect();
-    const reach = Math.max(r.width, 260) * 1.6;
-    const nx = Math.max(-1, Math.min(1, (e.clientX - (r.left + r.width / 2)) / reach));
-    const ny = Math.max(-1, Math.min(1, (e.clientY - (r.top + r.height / 2)) / reach));
-    ry(nx * 8); rx(-ny * 5); tz(10);
-    go(0.9 - Math.min(0.6, Math.hypot(nx, ny) * 0.5));
+    const r = slot.getBoundingClientRect();
+    const reach = Math.max(r.width, 240) * 1.6;
+    const dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+    const d = Math.hypot(dx, dy);
+    // full response near the cassette, fading back to neutral as the pointer moves away (no influence beyond 2 × reach)
+    const fade = d <= reach ? 1 : Math.max(0, 1 - (d - reach) / reach);
+    const nx = Math.max(-1, Math.min(1, dx / reach)) * fade;
+    const ny = Math.max(-1, Math.min(1, dy / reach)) * fade;
+    ry(nx * 7); rx(-ny * 4);      // rotateY -7 → +7, rotateX +4 → -4
+    tx(nx * 4); ty(ny * 3);       // anchored: at most ±4px / ±3px
+    go(fade * (0.8 - Math.min(0.55, Math.hypot(nx, ny) * 0.5)));
     glare.style.setProperty('--gx', `${50 + nx * 40}%`);
     glare.style.setProperty('--gy', `${40 + ny * 40}%`);
   };
-  const leave = () => { rx(0); ry(0); tz(0); go(0); };
+  const leave = () => { rx(0); ry(0); tx(0); ty(0); go(0); };
   zone.addEventListener('pointermove', move);
   zone.addEventListener('pointerleave', leave);
-  return () => { zone.removeEventListener('pointermove', move); zone.removeEventListener('pointerleave', leave); gsap.killTweensOf([tilt, glare]); };
+  return () => { zone.removeEventListener('pointermove', move); zone.removeEventListener('pointerleave', leave); gsap.killTweensOf([obj, glare]); gsap.set(obj, { clearProps: 'transform' }); };
 }
 
 /* ------------------------------------------------------------------ case pages: project tone */

@@ -10,7 +10,7 @@ import { SERVICES, price } from '../data/services';
       <li>
         <a class="row" href={`/services?service=${s.id}`} data-cursor="BOOK →">
           <span class="n mono quiet">{s.n}</span>
-          <span class="title">{s.name}</span>
+          <span class="title">{s.name}{s.tag && <span class="tag mono">{s.tag}</span>}</span>
           <span class="info">
             <span class="meta">{s.delivery}</span>
             <span class="meta quiet">{s.rounds}</span>

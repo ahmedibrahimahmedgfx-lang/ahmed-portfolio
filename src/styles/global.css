@@ -771,3 +771,7 @@ html.nav-open .nav-overlay .t-name { z-index: 86; }
   .ticks, .fields { grid-template-columns: 1fr; }
   .book-process ol { grid-template-columns: 1fr; }
 }
+
+/* service tag ("Recommended") */
+.svc .tag { color: var(--acid); }
+.sess-list .title .tag { display: block; margin-top: 12px; color: var(--acid); line-height: 1; }

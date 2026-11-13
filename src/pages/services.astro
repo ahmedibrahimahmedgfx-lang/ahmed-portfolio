@@ -27,8 +27,10 @@ const description = `Book a session with Ahmed Ibrahim. ${SERVICES.map((s) => `$
                 <input class="sr" type="checkbox" name="service" value={s.id} data-name={s.name} data-from={s.from} />
                 <span class="box" aria-hidden="true"></span>
                 <span class="t">
+                  {s.tag && <span class="tag mono">{s.tag}</span>}
                   <span class="title">{s.name}</span>
                   <span class="sum">{s.summary}</span>
+                  {s.note && <span class="meta">{s.note}</span>}
                   <span class="meta quiet">{s.delivery} / {s.rounds}</span>
                 </span>
                 <span class="p">

@@ -20,6 +20,10 @@ export type Service = {
   rounds: string;
   summary: string;
   idealFor: string;
+  /** optional small label next to the name, e.g. 'Recommended' */
+  tag?: string;
+  /** optional line under the summary */
+  note?: string;
   /** shown as tick boxes the client can switch on or off */
   includes: string[];
 };
@@ -29,7 +33,9 @@ export const SERVICES: Service[] = [
     id: 'strategic-brand-design',
     n: '01',
     name: 'Strategic Brand Design',
-    from: 700,
+    from: 500,
+    tag: 'Recommended',
+    note: 'Everything in Brand Identity Design, plus the strategy behind it.',
     delivery: 'Timeline agreed per project',
     rounds: '2 concepts, 3 revisions',
     summary: 'Strategy first. We define who the brand is for, what it stands for and where it sits in its market, then build the full identity on that foundation so every design decision has a reason.',

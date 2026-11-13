@@ -4,6 +4,7 @@ import { initTape, mountTape } from './tape';
 import { initTheater } from './theater';
 import { initNav } from './nav';
 import { mountPage, unmountPage } from './motion';
+import { mountBooking } from './booking';
 
 let booted = false;
 
@@ -40,5 +41,6 @@ export function boot() {
     const home = document.body.classList.contains('home');
     mountTape(!home);
     mountPage();
+    mountBooking();
   });
 }

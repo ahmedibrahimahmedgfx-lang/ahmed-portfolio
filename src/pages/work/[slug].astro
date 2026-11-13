@@ -146,6 +146,14 @@ const description = `${p.title}. ${p.kind}. ${lead.lead ?? lead.text}`.slice(0, 
       </div>
     </div>
 
+    <section class="case-cta wrap" aria-label="Start a project">
+      <span class="meta quiet">Side B / Booking</span>
+      <h2 class="display" data-reveal>{p.track === 1 ? <>Want an identity<br /><span class="dim">built this way?</span></> : <>Want a campaign<br /><span class="dim">built this way?</span></>}</h2>
+      {p.track === 1
+        ? <a class="sess-all meta" href="/services?service=brand-identity" data-cursor="BOOK →"><span>Book a session</span><span class="shaft" aria-hidden="true"></span><Arrow /></a>
+        : <a class="sess-all meta" href="/#contact" data-cursor="CONNECT →"><span>Get in touch</span><span class="shaft" aria-hidden="true"></span><Arrow /></a>}
+    </section>
+
     <a class="case-next" href={`/work/${next.slug}`} data-vt={`cover-${next.slug}`} data-cursor="NEXT →" data-section data-track={`TRACK ${next.track === 1 ? '01' : '03'}`} data-label="NEXT RECORDING">
       <Img id={next.cover} alt="" sizes="100vw" />
       <span class="content">

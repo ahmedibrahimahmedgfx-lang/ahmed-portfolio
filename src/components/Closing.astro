@@ -2,6 +2,7 @@
 import Arrow from './Arrow.astro';
 import { SITE } from '../data/site';
 const links = [
+  { k: 'Booking', v: 'Book a session', href: '/services', cursor: 'BOOK →', ext: false },
   { k: 'Email', v: SITE.email, href: `mailto:${SITE.email}`, cursor: 'CONNECT →', ext: false },
   { k: 'WhatsApp', v: SITE.whatsappLabel, href: SITE.whatsapp, cursor: 'OPEN ↗', ext: true },
   { k: 'Behance', v: SITE.behanceLabel, href: SITE.behance, cursor: 'OPEN ↗', ext: true },

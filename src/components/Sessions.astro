@@ -1,0 +1,25 @@
+---
+import Arrow from './Arrow.astro';
+import { SERVICES, price } from '../data/services';
+---
+<section class="sessions section wrap" id="sessions" data-section data-track="SIDE B" data-label="BOOKING" aria-labelledby="sess-h">
+  <div class="section-meta meta quiet"><span>Side B / Booking</span><span>Sessions / 2026</span></div>
+  <h2 class="display" id="sess-h" data-reveal><span>Book a</span><br /><span class="acid">session.</span></h2>
+  <ul class="sess-list" role="list">
+    {SERVICES.map((s) => (
+      <li>
+        <a class="row" href={`/services?service=${s.id}`} data-cursor="BOOK →">
+          <span class="n mono quiet">{s.n}</span>
+          <span class="title">{s.name}</span>
+          <span class="info">
+            <span class="meta">{s.delivery}</span>
+            <span class="meta quiet">{s.rounds}</span>
+          </span>
+          <span class="from"><span class="meta quiet">From</span><span class="amt">{price(s.from)}</span></span>
+          <span class="go"><Arrow /></span>
+        </a>
+      </li>
+    ))}
+  </ul>
+  <a class="sess-all meta" href="/services" data-cursor="BOOK →"><span>Build your brief</span><span class="shaft" aria-hidden="true"></span><Arrow /></a>
+</section>

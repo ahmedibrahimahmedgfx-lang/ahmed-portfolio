@@ -1,0 +1,127 @@
+---
+import Base from '../layouts/Base.astro';
+import Arrow from '../components/Arrow.astro';
+import { SITE } from '../data/site';
+import { SERVICES, TIMELINES, PROCESS, CURRENCY, price } from '../data/services';
+
+const description = `Book a session with Ahmed Ibrahim. ${SERVICES.map((s) => `${s.name} from ${price(s.from)}`).join('. ')}.`;
+---
+<Base title="Book a session / Ahmed Ibrahim" description={description} side="SIDE B" pageClass="booking-page">
+  <section class="book-hero wrap" data-section data-track="SIDE B" data-label="BOOKING">
+    <div class="section-meta meta quiet"><span>Side B / Booking</span><span>Sessions / 2026</span></div>
+    <h1 class="display"><span>Book a</span><br /><span class="acid">session.</span></h1>
+    <div class="intro">
+      <p class="body">Choose what you need, see a starting price, then send the brief by email or WhatsApp.</p>
+      <a class="case-back meta" href="/" data-cursor="REWIND"><Arrow dir="replay" /> Back to the tape</a>
+    </div>
+  </section>
+
+  <form class="book wrap" data-booking data-email={SITE.email} data-whatsapp={SITE.whatsapp} data-currency={CURRENCY} novalidate>
+    <div class="book-steps">
+      <fieldset class="step">
+        <legend class="step-head"><span class="mono">01</span><span class="meta">Choose a service</span></legend>
+        <ul class="svc-list" role="list">
+          {SERVICES.map((s) => (
+            <li>
+              <label class="svc" data-cursor="SELECT">
+                <input class="sr" type="checkbox" name="service" value={s.id} data-name={s.name} data-from={s.from} />
+                <span class="box" aria-hidden="true"></span>
+                <span class="t">
+                  <span class="title">{s.name}</span>
+                  <span class="sum">{s.summary}</span>
+                  <span class="meta quiet">{s.delivery} / {s.rounds}</span>
+                </span>
+                <span class="p">
+                  <span class="meta quiet">From</span>
+                  <span class="amt">{price(s.from)}</span>
+                </span>
+              </label>
+            </li>
+          ))}
+        </ul>
+      </fieldset>
+
+      <fieldset class="step">
+        <legend class="step-head"><span class="mono">02</span><span class="meta">What you need</span></legend>
+        <p class="meta quiet" data-needs-empty>Select a service to see what it includes.</p>
+        {SERVICES.map((s) => (
+          <div class="needs" data-needs={s.id} hidden>
+            <p class="meta needs-h"><span>{s.name}</span><span class="quiet">Ideal for: {s.idealFor}</span></p>
+            <ul class="ticks" role="list">
+              {s.includes.map((x) => (
+                <li>
+                  <label class="tick" data-cursor="SELECT">
+                    <input class="sr" type="checkbox" name={`need-${s.id}`} value={x} checked />
+                    <span class="box" aria-hidden="true"></span>
+                    <span>{x}</span>
+                  </label>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </fieldset>
+
+      <fieldset class="step">
+        <legend class="step-head"><span class="mono">03</span><span class="meta">About the project</span></legend>
+        <div class="fields">
+          <label class="field">
+            <span class="meta quiet">Your name</span>
+            <input type="text" name="name" autocomplete="name" />
+          </label>
+          <label class="field">
+            <span class="meta quiet">Brand / company</span>
+            <input type="text" name="brand" autocomplete="organization" />
+          </label>
+          <div class="field wide">
+            <span class="meta quiet" id="tl-label">When do you need it?</span>
+            <div class="chips" role="radiogroup" aria-labelledby="tl-label">
+              {TIMELINES.map((t) => (
+                <label class="chip" data-cursor="SELECT">
+                  <input class="sr" type="radio" name="timeline" value={t} />
+                  <span class="meta">{t}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+          <label class="field wide">
+            <span class="meta quiet">About the project</span>
+            <textarea name="notes" rows="4"></textarea>
+          </label>
+        </div>
+      </fieldset>
+    </div>
+
+    <aside class="sheet" aria-label="Your brief">
+      <div class="sheet-head meta"><span>Session sheet</span><span class="mono quiet">Side B</span></div>
+      <span class="tape-draw" aria-hidden="true"></span>
+      <ul class="sheet-lines" role="list" data-sheet-lines aria-live="polite">
+        <li class="meta quiet">No service selected yet.</li>
+      </ul>
+      <div class="sheet-total">
+        <span class="meta quiet">Starting estimate</span>
+        <span class="amt" data-sheet-total>{price(0)}</span>
+      </div>
+      <p class="meta quiet note">Starting prices. The final quote depends on the scope.</p>
+      <div class="sheet-actions">
+        <a class="send primary meta" data-send="email" aria-disabled="true" data-cursor="SEND →"><span>Send by email</span><Arrow /></a>
+        <a class="send meta" data-send="whatsapp" aria-disabled="true" target="_blank" rel="noopener" data-cursor="OPEN ↗"><span>Send on WhatsApp</span><Arrow dir="ne" /></a>
+        <button class="copy mono quiet" type="button" data-copy data-cursor="COPY">Copy brief</button>
+      </div>
+    </aside>
+  </form>
+
+  <section class="book-process wrap" aria-labelledby="proc-h" data-section data-track="SIDE B" data-label="PROCESS">
+    <h2 class="display" id="proc-h">How a session<br /><span class="dim">runs.</span></h2>
+    <ol role="list">
+      {PROCESS.map((p) => (
+        <li data-reveal>
+          <span class="mono quiet">{p.n}</span>
+          <h3 class="display">{p.head}</h3>
+          <p class="body">{p.text}</p>
+        </li>
+      ))}
+    </ol>
+    <p class="alt meta quiet">Prefer to talk first? <a href={`mailto:${SITE.email}`} data-cursor="CONNECT →">{SITE.email}</a></p>
+  </section>
+</Base>

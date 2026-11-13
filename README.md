@@ -97,7 +97,18 @@ Videos: `python3 scripts/media/build_media.py --only video` (needs ffmpeg). Loop
 3. Add its slug to `ORDER` (this also sets the "Next recording" sequence).
 4. `npm run build`. The page is generated at `/work/<slug>`, appears in the tracklist overlay and in its track index.
 
-## 8. Behaviour notes
+## 8. Services, prices and the booking page
+
+`/services` ("Book a session") and the home "Sessions" section both read from **`src/data/services.ts`**.
+
+- Change a price: edit `from` (number only). Currency is `CURRENCY` at the top of the file.
+- Change delivery time, rounds, summary or the tick-box list: edit the matching field.
+- Add a service: copy one block inside `SERVICES`, give it a new `id` and `n`.
+- "When do you need it?" options: `TIMELINES`. Process steps: `PROCESS`.
+
+The page has no backend. It builds the brief in the browser and opens the visitor's email app or WhatsApp with the text filled in, using `email` and `whatsapp` from `src/data/site.ts`. A link like `/services?service=brand-identity` opens with that service selected.
+
+## 9. Behaviour notes
 
 - **Reduced motion**: no smooth transitions, parallax, pinning or autoplaying previews. All content stays visible.
 - **Touch devices**: no custom cursor or hover previews; titles show their image inline; valU reveals on scroll, Spotify compares by drag.

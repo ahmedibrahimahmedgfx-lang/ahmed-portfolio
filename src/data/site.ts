@@ -33,8 +33,8 @@ export const PRACTICE = [
 ];
 
 export const EXPERIENCE = [
-  { years: '2026/PRESENT', role: 'Sr. Graphic Designer', where: 'HARF / IRAQ' },
-  { years: '2023/PRESENT', role: 'Sr. Graphic Designer', where: 'FREELANCE' },
+  { years: '2026/PRESENT', role: 'Sr. Brand Designer / Art Director', where: 'HARF / IRAQ' },
+  { years: '2023/PRESENT', role: 'Brand Designer', where: 'FREELANCE' },
   { years: '2024/2025', role: 'Sr. Graphic Designer', where: 'ORKADZ / SPAIN' },
   { years: '2020/2023', role: 'Graphic Designer', where: 'SHEKO’S STUDIO' },
   { years: '2016/2020', role: 'Graphic Designer', where: 'KARTAJ AGENCY' },

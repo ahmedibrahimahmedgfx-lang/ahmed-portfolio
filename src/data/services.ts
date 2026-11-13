@@ -4,7 +4,7 @@
  * EDIT HERE: change a price, a delivery time, an included item, or add a new service by copying one block.
  * Nothing else in the code needs to change. Run `npm run build` afterwards.
  *
- * Text is taken from the Behance services (November 2026).
+ * Brand Identity Design and Logo Design text is taken from the Behance services (November 2026).
  */
 
 export const CURRENCY = 'US$';
@@ -26,8 +26,28 @@ export type Service = {
 
 export const SERVICES: Service[] = [
   {
-    id: 'brand-identity',
+    id: 'strategic-brand-design',
     n: '01',
+    name: 'Strategic Brand Design',
+    from: 700,
+    delivery: 'Timeline agreed per project',
+    rounds: '2 concepts, 3 revisions',
+    summary: 'Strategy first. We define who the brand is for, what it stands for and where it sits in its market, then build the full identity on that foundation so every design decision has a reason.',
+    idealFor: 'Founders and teams who want a brand built on a clear strategy',
+    includes: [
+      'Brand positioning',
+      'Brand personality',
+      'Visual research',
+      'Creative direction',
+      'Logo design',
+      'Typography',
+      'Visual identity system',
+      'Brand guidelines',
+    ],
+  },
+  {
+    id: 'brand-identity',
+    n: '02',
     name: 'Brand Identity Design',
     from: 350,
     delivery: 'Within 1 month',
@@ -46,7 +66,7 @@ export const SERVICES: Service[] = [
   },
   {
     id: 'logo-design',
-    n: '02',
+    n: '03',
     name: 'Logo Design',
     from: 200,
     delivery: 'Less than a week',

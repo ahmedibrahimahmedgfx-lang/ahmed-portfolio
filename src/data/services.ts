@@ -29,6 +29,7 @@ export type Service = {
 };
 
 export const SERVICES: Service[] = [
+  // 01: strategy + the full identity. The only tier that includes strategy work.
   {
     id: 'strategic-brand-design',
     n: '01',
@@ -36,32 +37,35 @@ export const SERVICES: Service[] = [
     from: 500,
     tag: 'Recommended',
     note: 'Everything in Brand Identity Design, plus the strategy behind it.',
-    delivery: 'Timeline agreed per project',
+    delivery: 'Within 2 months',
     rounds: '2 concepts, 3 revisions',
     summary: 'Strategy first. We define who the brand is for, what it stands for and where it sits in its market, then build the full identity on that foundation so every design decision has a reason.',
     idealFor: 'Founders and teams who want a brand built on a clear strategy',
     includes: [
+      'Brand discovery',
       'Brand positioning',
       'Brand personality',
-      'Visual research',
-      'Creative direction',
-      'Logo design',
-      'Typography',
-      'Visual identity system',
-      'Brand guidelines',
+      'Visual research and creative direction',
+      'Logo design / refined logo system',
+      'Color palette and typography system',
+      'Visual style development',
+      'Brand guidelines for consistent use',
+      'Mockup presentations for real-world application',
     ],
   },
+  // 02: the visual system only, built from the client's own brief. No strategy work.
   {
     id: 'brand-identity',
     n: '02',
     name: 'Brand Identity Design',
     from: 350,
+    note: 'Built from your existing brief and positioning.',
     delivery: 'Within 1 month',
     rounds: '2 concepts, 3 revisions',
-    summary: 'Build a strategic and visually distinctive brand identity tailored to your business goals.',
-    idealFor: 'Startups, personal brands and growing businesses',
+    summary: 'A complete visual identity for a brand that already knows what it stands for: a clear, memorable and consistent visual system across digital and print.',
+    idealFor: 'Startups, personal brands and growing businesses with a clear brief',
     includes: [
-      'Brand discovery and creative direction',
+      'Creative direction from your brief',
       'Logo design / refined logo system',
       'Color palette selection',
       'Typography system',
@@ -70,6 +74,7 @@ export const SERVICES: Service[] = [
       'Mockup presentations for real-world application',
     ],
   },
+  // 03: the mark only.
   {
     id: 'logo-design',
     n: '03',

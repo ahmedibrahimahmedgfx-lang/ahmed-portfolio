@@ -116,7 +116,11 @@ A small voxel walk through Cairo. The city starts grey and each place the visito
 - Game: `src/scripts/play.ts` (the city, the character, movement, discovery). It uses `three`, which is only loaded on `/play`.
 - Content is read from `src/data`, so the game follows the site: the five downtown shops are the brand identities in `ORDER`, the three billboards are the art direction projects, the alley shows the first eight `TYPE_WORKS`, the pyramids are `PROCESS`, the ahwa lists `SERVICES`, the kiosk lists `EXPERIENCE`, and the two cameras play the Mini Showreel and The Question from `FILMS`.
 - To move a place or change its panel text, search for its name in the `build` function in `play.ts`.
-- Progress is saved in the visitor's browser only (localStorage). There is no backend.
+- Opening trailer, the empty shop ("brand it yourself"), people and their lines, traffic, the cat, day and night: all in `play.ts`. Every spoken line sits in the `life` function as `[what they say, what Ahmed answers]`. The trailer cards are the `CARDS` list.
+- Sound: `src/scripts/play-audio.ts`. Everything is generated in the browser, there are no audio files.
+- Progress, the timer and the visitor's shop sign are saved in the visitor's browser (localStorage).
+- Leaderboard: `worker/index.js` answers `/api/scores` and stores times in the Cloudflare D1 database `cairo-scores` (bound in `wrangler.jsonc`). Names and times are public. An email is stored only if the visitor ticks the consent box, and the API never returns it. To read entries: Cloudflare dashboard > Storage & Databases > D1 > cairo-scores > Console, then `SELECT * FROM scores ORDER BY at DESC;`. To remove one: `DELETE FROM scores WHERE id = ...;`.
+- The Worker only runs for `/api/*`. Every other request is served as a static file, as before.
 
 ## 10. Behaviour notes
 

@@ -1,0 +1,20 @@
+{
+  // Cloudflare Worker config. The site is static (./dist); the Worker only answers /api/* for the /play leaderboard.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "ahmed-portfolio",
+  "main": "worker/index.js",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "404-page",
+    "run_worker_first": ["/api/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "cairo-scores",
+      "database_id": "1f346fb0-1e8d-4d7f-b489-13c69efa3d83"
+    }
+  ]
+}

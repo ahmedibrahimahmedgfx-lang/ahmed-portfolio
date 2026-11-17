@@ -87,7 +87,7 @@ const data = {
       .meter .row { display: flex; justify-content: space-between; gap: 16px; }
       .meter .bar { height: 3px; background: var(--rule); margin-top: 7px; }
       .meter .bar i { display: block; height: 100%; width: 0; background: var(--acid); transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1); }
-      .hud-btns { display: flex; gap: 6px; }
+      .hud-btns { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
       .hud-btns a, .hud-btns button { background: var(--ink); padding: 8px 12px; text-decoration: none; }
       .hud-btns a:hover, .hud-btns button:hover { background: var(--acid); color: var(--ink); }
 
@@ -97,7 +97,7 @@ const data = {
       .hint { position: fixed; left: 16px; bottom: max(18px, env(safe-area-inset-bottom)); z-index: 4; color: var(--bone); background: var(--ink); padding: 8px 12px; transition: opacity 0.6s; }
       .toast { position: fixed; left: 50%; top: 84px; transform: translateX(-50%); z-index: 7; background: var(--bone); color: var(--ink); padding: 9px 14px; opacity: 0; transition: opacity 0.3s; pointer-events: none; white-space: nowrap; }
       .toast.on { opacity: 1; }
-      @media (max-width: 720px) { .hint { display: none; } .meter { min-width: 150px; } .toast { top: 118px; } }
+      @media (max-width: 720px) { .hint { display: none; } .meter { min-width: 150px; } .toast { top: 168px; } .hud-btns a, .hud-btns button { padding: 8px 9px; } .hud-btns { max-width: 190px; } }
 
       .scrim { position: fixed; inset: 0; z-index: 20; background: rgba(11, 9, 14, 0.72); display: none; align-items: center; justify-content: center; padding: 16px; }
       .scrim.on { display: flex; }
@@ -136,11 +136,76 @@ const data = {
       .paper .btn { background: #17140f; color: #e9e2cf; }
       .paper .btn.ghost { background: none; color: #17140f; border-color: #17140f; }
 
+      .say { position: fixed; z-index: 4; transform: translate(-50%, -100%); background: var(--bone); color: var(--ink); padding: 9px 12px; font-size: 13.5px; line-height: 1.35; width: max-content; max-width: min(250px, 70vw); pointer-events: none; opacity: 0; transition: opacity 0.18s; }
+      .say.on { opacity: 1; }
+      .say.me { background: var(--acid); transform: translate(-50%, 0); }
+      .say.me::after { top: auto; bottom: 100%; border-top-color: transparent; border-bottom-color: var(--acid); }
+      .say::after { content: ''; position: absolute; left: 50%; top: 100%; margin-left: -6px; border: 6px solid transparent; border-top-color: var(--bone); }
+
+      .field { width: 100%; padding: 12px 14px; background: var(--ink-2); border: 1px solid var(--rule); color: var(--bone); font: inherit; font-size: 16px; border-radius: 0; outline: none; }
+      .field:focus { border-color: var(--acid); }
+      .signpv { width: 100%; height: auto; display: block; margin: 4px 0 12px; border: 1px solid var(--rule); }
+      .optrow { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+      .optrow > span { min-width: 62px; color: var(--bone-2); }
+      .opt { padding: 9px 13px; border: 1px solid var(--rule); }
+      .opt.on { background: var(--bone); color: var(--ink); border-color: var(--bone); }
+      .sw { width: 38px; height: 38px; border: 1px solid var(--rule); }
+      .sw.on { outline: 2px solid var(--acid); outline-offset: 2px; }
+
+      .board { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule); max-width: 560px; }
+      .board li { display: grid; grid-template-columns: 34px 1fr auto 74px; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--rule); font-size: 0.95rem; align-items: baseline; }
+      .board li.empty { display: block; color: var(--bone-2); }
+      .board li.me { color: var(--acid); }
+      .board .rk, .board .sw2 { font-family: var(--mono); font-size: 11px; color: var(--bone-2); }
+      .board .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .board .tm { font-family: var(--mono); text-align: right; }
+
+      .cine { position: fixed; inset: 0; z-index: 25; display: none; pointer-events: none; overflow: hidden; }
+      .cine.on { display: block; }
+      .cine::before, .cine::after { content: ''; position: absolute; left: 0; right: 0; height: 13vh; background: #000; z-index: 2; }
+      .cine::before { top: 0; }
+      .cine::after { bottom: 0; }
+      .cine .vig { position: absolute; inset: 0; background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 30%, rgba(0, 0, 0, 0.82) 100%); }
+      .cine.light .vig { opacity: 0; }
+      .cine-card { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(90vw, 1100px); text-align: center; font-family: var(--display); font-size: clamp(1.4rem, 4.4vw, 3.2rem); letter-spacing: 0.14em; text-transform: uppercase; color: var(--bone); opacity: 0; text-shadow: 0 2px 34px #000, 0 0 4px #000; z-index: 3; }
+      .cine-card.in { animation: cardin 3.4s cubic-bezier(0.2, 0.7, 0.2, 1) forwards; }
+      @keyframes cardin { 0% { opacity: 0; letter-spacing: 0.34em; filter: blur(8px); } 16% { opacity: 1; filter: blur(0); } 84% { opacity: 1; } 100% { opacity: 0; letter-spacing: 0.1em; } }
+      .cine-card.title { font-size: clamp(2.8rem, 11vw, 9rem); letter-spacing: -0.02em; line-height: 0.88; text-transform: none; }
+      .cine-card.title.in { animation: slam 3.5s cubic-bezier(0.2, 0.9, 0.2, 1) forwards; }
+      @keyframes slam { 0% { opacity: 0; transform: translate(-50%, -50%) scale(1.7); } 7% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 100% { opacity: 1; transform: translate(-50%, -50%) scale(1.04); } }
+      .cine-card.funny { font-family: var(--sans); font-weight: 600; text-transform: none; letter-spacing: 0; font-size: clamp(1.05rem, 3.2vw, 1.8rem); top: auto; bottom: 18vh; transform: translateX(-50%); background: var(--acid); color: var(--ink); width: max-content; max-width: 88vw; padding: 12px 18px; text-shadow: none; }
+      .cine-card.funny.in { animation: popin 4.3s forwards; }
+      @keyframes popin { 0% { opacity: 0; transform: translateX(-50%) scale(0.5) rotate(-4deg); } 5% { opacity: 1; transform: translateX(-50%) scale(1.08) rotate(1deg); } 9% { transform: translateX(-50%) scale(1) rotate(0); } 92% { opacity: 1; } 100% { opacity: 0; transform: translateX(-50%); } }
+      .cine-skip { position: absolute; right: 16px; bottom: calc(13vh + 14px); z-index: 4; pointer-events: auto; background: var(--ink); color: var(--bone); padding: 8px 12px; }
+      .cine-skip:hover { background: var(--acid); color: var(--ink); }
+      body.cine-on .hud, body.cine-on .hint, body.cine-on .prompt, body.cine-on .toast, body.cine-on .say { display: none; }
+      body.cine-dark #stage { filter: contrast(1.2) brightness(0.72); }
+
+      .outro { overflow: auto; -webkit-overflow-scrolling: touch; }
+      .outro-in { margin: auto 0; padding: 12px 0; }
+      .outro .stats { display: flex; flex-wrap: wrap; gap: 8px 28px; margin: 0 0 20px; }
+      .outro .stats span { display: block; color: var(--bone-2); }
+      .outro .stats b { font-family: var(--display); font-weight: 500; font-size: 2rem; letter-spacing: 0; text-transform: none; color: var(--acid); }
+      .post { max-width: 560px; margin-bottom: 8px; }
+      .post[hidden] { display: none; }
+      .post > label { display: block; margin-bottom: 8px; }
+      .post .rowf { display: flex; gap: 8px; }
+      .post .rowf .btn { white-space: nowrap; }
+      .post details { margin-top: 10px; }
+      .post summary { cursor: pointer; color: var(--bone-2); padding: 6px 0; }
+      .post details .field { margin: 6px 0 8px; }
+      .chk { display: flex; gap: 8px; align-items: flex-start; font-size: 0.86rem; line-height: 1.4; color: var(--bone-2); }
+      .chk input { margin-top: 3px; accent-color: #d7ff00; }
+      .msg { color: var(--acid); min-height: 1.4em; margin: 6px 0 14px; }
+      .boardhead { color: var(--bone-2); margin-bottom: 8px; }
+      .outro .acts { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 18px; }
+
       .intro, .outro { position: fixed; inset: 0; z-index: 30; background: var(--ink); display: flex; flex-direction: column; justify-content: center; padding: 24px clamp(18px, 6vw, 84px); }
-      .outro { display: none; background: rgba(11, 9, 14, 0.9); }
+      .outro { display: none; background: rgba(11, 9, 14, 0.975); justify-content: flex-start; }
       .outro.on { display: flex; }
       .intro.off { display: none; }
       .intro h1, .outro h1 { font-family: var(--display); font-weight: 500; font-size: clamp(3.2rem, 13vw, 11rem); line-height: 0.86; margin: 14px 0 18px; letter-spacing: -0.02em; }
+      .outro h1 { font-size: clamp(2.8rem, 9vw, 6.4rem); }
       .intro h1 span, .outro h1 span { color: #5c5a60; }
       .outro h1 span { color: var(--acid); }
       .intro p, .outro p { max-width: 46ch; line-height: 1.55; margin: 0 0 22px; font-size: 1.05rem; }
@@ -160,9 +225,13 @@ const data = {
           <div class="row"><span>City branded</span><span data-pct>0%</span></div>
           <div class="bar"><i data-bar></i></div>
           <div class="row" style="margin-top:7px"><span>Swatches</span><span data-chips>0/0</span></div>
+          <div class="row"><span>Secrets</span><span data-secrets>0/3</span></div>
+          <div class="row"><span>Time</span><span data-time>0:00</span></div>
         </div>
         <div class="hud-btns">
-          <button type="button" data-metro>Metro map</button>
+          <button type="button" data-metro>Metro</button>
+          <button type="button" data-board-btn>Board</button>
+          <button type="button" data-sound>Sound on</button>
           <a href="/" data-exit>Exit</a>
         </div>
       </div>
@@ -171,19 +240,51 @@ const data = {
     <div class="hint mono" data-hint>WASD / arrows to walk · Shift to run · click to walk there</div>
     <div class="toast mono" data-toast></div>
     <button class="prompt mono" type="button" data-prompt></button>
+    <div class="say" data-say aria-live="polite"></div>
+    <div class="say me" data-say-me></div>
+
+    <div class="cine" data-cine aria-hidden="true">
+      <div class="vig"></div>
+      <div class="cine-card" data-cine-card></div>
+      <button class="cine-skip mono" type="button" data-cine-skip>Skip intro</button>
+    </div>
 
     <div class="scrim" data-scrim role="dialog" aria-modal="true" aria-label="Details">
       <div class="panel" data-panel></div>
     </div>
 
     <div class="outro" data-outro>
-      <div class="mono">100% / every place has its identity back</div>
-      <h1>Cairo, <span>branded.</span></h1>
-      <p>That is the job. A place, a product or a company is already something. I find out what, then build the identity that shows it.</p>
-      <div class="acts" style="display:flex;gap:8px;flex-wrap:wrap">
-        <a class="btn" href="/services">Book a session</a>
-        <a class="btn ghost" href="/">See the portfolio</a>
-        <button class="btn ghost" type="button" data-outro-close>Keep walking</button>
+      <div class="outro-in">
+        <div class="mono">100% / every place has its identity back</div>
+        <h1>Cairo, <span>branded.</span></h1>
+        <p>That is the job. A place, a product or a company is already something. I find out what, then build the identity that shows it.</p>
+        <div class="stats mono">
+          <div><span>Your time</span><b data-o-time>0:00</b></div>
+          <div><span>Swatches</span><b data-o-chips>0/12</b></div>
+          <div><span>Secrets</span><b data-o-secrets>0/3</b></div>
+        </div>
+        <form class="post" data-post novalidate>
+          <label class="mono" for="post-name">Put your name on the board</label>
+          <div class="rowf">
+            <input class="field" id="post-name" name="name" type="text" maxlength="16" autocomplete="nickname" placeholder="Your name" />
+            <button class="btn" type="submit">Post my time</button>
+          </div>
+          <details>
+            <summary class="mono">Want Ahmed to get in touch? Optional</summary>
+            <input class="field" name="email" type="email" maxlength="120" autocomplete="email" placeholder="you@company.com" aria-label="Email, optional" />
+            <label class="chk"><input type="checkbox" name="consent" /> <span>Yes, Ahmed can email me about working together. The address is never shown on the board.</span></label>
+          </details>
+        </form>
+        <div class="msg mono" data-post-msg aria-live="polite"></div>
+        <div class="mono boardhead">Fastest walks</div>
+        <ol class="board" data-board></ol>
+        <div class="acts">
+          <button class="btn" type="button" data-share>Share my result</button>
+          <a class="btn ghost" href="/services">Book a session</a>
+          <a class="btn ghost" href="/">See the portfolio</a>
+          <button class="btn ghost" type="button" data-outro-close>Keep walking</button>
+          <button class="btn ghost" type="button" data-again>Play again</button>
+        </div>
       </div>
     </div>
 
@@ -192,6 +293,7 @@ const data = {
       <h1>Cairo,<br /><span>unbranded.</span></h1>
       <p>The city has lost its colour. Walk it, find the work, and every place you discover gets its identity back.</p>
       <button class="start" type="button" data-start disabled>Loading the city</button>
+      <div class="keys mono" style="margin-top:14px">Sound on is recommended</div>
       <div class="keys mono">Walk: WASD, arrows or drag · Run: Shift · Open: E, Enter or tap the yellow button</div>
     </div>
 

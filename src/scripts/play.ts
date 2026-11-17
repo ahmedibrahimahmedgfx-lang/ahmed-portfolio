@@ -196,6 +196,59 @@ export function boot() {
       setTex(mesh, tex, im.width / im.height);
     });
   };
+  /**
+   * Shows the whole image, never cropped, with clear space around it. The margin takes the image's own corner colour.
+   * trim = true first finds the artwork inside the image (anything that differs from the corner colour), so a small mark
+   * on a big background fills the tile and still keeps the same safe area on every side.
+   */
+  const loadContain = (mesh: THREE.Mesh, url: string, pad = 0.1, trim = false) => {
+    const im = new Image();
+    im.onload = () => {
+      let sx = 0;
+      let sy = 0;
+      let sw = im.width;
+      let sh = im.height;
+      if (trim) {
+        const t = document.createElement('canvas');
+        t.width = im.width;
+        t.height = im.height;
+        const tg = t.getContext('2d', { willReadFrequently: true })!;
+        tg.drawImage(im, 0, 0);
+        const d = tg.getImageData(0, 0, t.width, t.height).data;
+        let x1 = t.width;
+        let y1 = t.height;
+        let x2 = 0;
+        let y2 = 0;
+        for (let y = 0; y < t.height; y += 2) {
+          for (let x = 0; x < t.width; x += 2) {
+            const k = (y * t.width + x) * 4;
+            if (Math.abs(d[k] - d[0]) + Math.abs(d[k + 1] - d[1]) + Math.abs(d[k + 2] - d[2]) > 90) {
+              if (x < x1) x1 = x;
+              if (x > x2) x2 = x;
+              if (y < y1) y1 = y;
+              if (y > y2) y2 = y;
+            }
+          }
+        }
+        if (x2 > x1 && y2 > y1) {
+          sx = x1;
+          sy = y1;
+          sw = x2 - x1 + 2;
+          sh = y2 - y1 + 2;
+        }
+      }
+      const a = mesh.userData.aspect as number;
+      const c = document.createElement('canvas');
+      c.height = 512;
+      c.width = Math.round(512 * a);
+      const g = c.getContext('2d')!;
+      g.drawImage(im, 0, 0, 1, 1, 0, 0, c.width, c.height); // the corner colour over the whole tile
+      const k = Math.min((c.width * (1 - pad * 2)) / sw, (c.height * (1 - pad * 2)) / sh);
+      g.drawImage(im, sx, sy, sw, sh, (c.width - sw * k) / 2, (c.height - sh * k) / 2, sw * k, sh * k);
+      setTex(mesh, new THREE.CanvasTexture(c));
+    };
+    im.src = url;
+  };
   const textTex = (lines: string[], bg: string, fg: string, w = 512, h = 128, font = 'Albertus', sub?: string) => {
     const c = document.createElement('canvas');
     c.width = w;
@@ -850,7 +903,7 @@ export function boot() {
           r: 3.2,
           group: bg,
           my: 10,
-          onFound: () => loadCover(face, p.image),
+          onFound: () => loadContain(face, p.image, 0.06),
           open: () =>
             openPanel(`Billboard / ${p.kind}`, (b) => {
               const h = el('h2', '', p.title);
@@ -1043,7 +1096,7 @@ export function boot() {
         r: 4.2,
         group: g,
         my: 12.5,
-        onFound: () => tiles.forEach((t, i) => loadCover(t, data.logos[i].image)),
+        onFound: () => tiles.forEach((t, i) => loadContain(t, data.logos[i].image, 0.16, true)),
         open: () =>
           openPanel('Abu Simbel / logo design', (b) => {
             b.append(el('h2', '', 'Marks made to last.'));

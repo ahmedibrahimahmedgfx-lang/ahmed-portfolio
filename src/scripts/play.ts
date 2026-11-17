@@ -17,6 +17,9 @@ type Data = {
   process: { n: string; head: string; text: string }[];
   services: { id: string; name: string; from: string; delivery: string; summary: string }[];
   experience: { years: string; role: string; where: string }[];
+  chain: string[];
+  practice: { head: string; items: string[] }[];
+  logos: { name: string; rtl: boolean; image: string }[];
 };
 
 type Spot = {
@@ -86,6 +89,7 @@ export function boot() {
   let zoom = 1;
   let zoomTarget = 1;
   let zoomHold = 0;
+  let zoomFocus: [number, number] = [-18, -14];
 
   const hemi = new THREE.HemisphereLight(0xffffff, 0x77736c, 1.15);
   scene.add(hemi);
@@ -749,7 +753,7 @@ export function boot() {
       });
     }
 
-    /* CORNICHE : camera one */
+    /* two cameras somebody left rolling: one on Gezira, one in Giza */
     const camProp = (x: number, z: number, g: string) => {
       box(x, 0, z, 1.5, 0.9, 0.9, 0x1d1d21, g);
       box(x + 1, 0.15, z, 0.7, 0.6, 0.6, 0x34343a, g);
@@ -760,7 +764,7 @@ export function boot() {
     };
     data.films.forEach((f, i) => {
       const g = 'film-' + f.id;
-      const [x, z] = f.id === 'mini-showreel' ? [11, -22.4] : [-56, 9];
+      const [x, z] = f.id === 'mini-showreel' ? [5, -38.8] : [-56, 9]; // both sit where no building can hide them
       camProp(x, z, g);
       spot({
         id: g,
@@ -819,6 +823,7 @@ export function boot() {
             up.type = 'button';
             up.addEventListener('click', () => {
               closePanel();
+              zoomFocus = [-18, -14];
               zoomTarget = 4.2;
               zoomHold = 7;
             });
@@ -946,6 +951,232 @@ export function boot() {
       solid(-59.4, 15.4, -55.8, 16.6);
     }
 
+    /* ================= UPPER EGYPT : Luxor and Aswan, south of the plaza ================= */
+    const SAND = 0xe8cf9a;
+    const STONE = 0xd9b77a;
+    box(0, -0.955, 46, 100, 1, 44, SAND);
+    box(-75, -0.975, 61.5, 50, 1, 13, 0xe3c487);
+    // the sleeper train line
+    for (let z = 3.5; z <= 60; z += 1.5) box(-40, 0.02, z, 2.6, 0.08, 0.34, 0x5a4636);
+    box(-40.8, 0.1, 31.5, 0.14, 0.12, 58, 0x55555c);
+    box(-39.2, 0.1, 31.5, 0.14, 0.12, 58, 0x55555c);
+    box(-37.4, 0.02, 11, 2.2, 0.06, 12, 0xbdb39a); // Cairo platform
+    box(-37.4, 0.02, 52, 2.2, 0.06, 12, 0xcdb48a); // Luxor platform
+    const stationSign = (z: number, text: string) => {
+      box(-36.6, 0, z, 0.2, 2.6, 0.2, 0x3b3b40, 'always');
+      setTex(plane(4.6, 0.8, -36.6, 2.7, z + 0.14), textTex([text], '#0b090e', '#d7ff00', 720, 120, 'Plex Mono'));
+    };
+    stationSign(17.6, 'SLEEPER TRAIN / LUXOR + ASWAN');
+    stationSign(58.6, 'SLEEPER TRAIN / CAIRO');
+
+    /* KARNAK : five columns, the order of the work */
+    {
+      const g = 'karnak';
+      const bands = [0xb5412f, 0x2f6fb5, 0x1e9e75, 0xe9a23b, 0x7f77dd];
+      const plaques: THREE.Mesh[] = [];
+      data.chain.slice(0, 5).forEach((_, i) => {
+        const x = -28 + i * 4;
+        box(x, 0, 31, 1.9, 0.4, 1.9, STONE, g);
+        box(x, 0.4, 31, 1.2, 7.2, 1.2, i % 2 ? 0xe2c488 : STONE, g);
+        box(x, 2.2, 31, 1.26, 0.5, 1.26, bands[i], g);
+        box(x, 6.2, 31, 1.26, 0.5, 1.26, bands[i], g);
+        box(x, 7.6, 31, 2, 0.8, 2, 0xe6cf9e, g);
+        box(x, 0, 33.2, 0.16, 0.7, 0.16, 0x3b3b40, 'always');
+        plaques.push(plane(3.2, 0.62, x, 0.95, 33.3));
+      });
+      box(-20, 8.4, 31, 19.4, 0.9, 1.7, STONE, g);
+      solid(-29, 30, -11, 32);
+      spot({
+        id: g,
+        label: 'Karnak: the five columns',
+        toast: 'Karnak stands in colour again',
+        x: -20,
+        z: 35.4,
+        r: 4.4,
+        group: g,
+        my: 11.5,
+        onFound: () => plaques.forEach((pl, i) => setTex(pl, textTex([`0${i + 1} ${data.chain[i]}`], '#0b090e', '#d7ff00', 512, 100, 'Plex Mono'))),
+        open: () =>
+          openPanel('Karnak / the system', (b) => {
+            b.append(el('h2', '', 'Five columns hold the roof up.'));
+            b.append(el('p', '', `${data.chain.map((c) => c[0] + c.slice(1).toLowerCase()).join(', ')}. In that order. Take one column away and the roof comes down.`));
+            const ul = el('ul', 'list');
+            data.practice.forEach((pr) => {
+              const li = el('li');
+              li.append(el('b', '', pr.head[0] + pr.head.slice(1).toLowerCase()), el('span', '', pr.items.join(' / ')));
+              ul.append(li);
+            });
+            b.append(ul, acts(link('How I work', '/services'), link('Read the profile', '/#profile', true)));
+          }),
+      });
+      // an avenue of small sphinxes leading east from the station
+      for (let x = -32; x <= -8; x += 4) {
+        for (const z of [40.4, 44.6]) {
+          box(x, 0, z, 1.7, 0.6, 0.8, STONE);
+          box(x + 0.75, 0.6, z, 0.6, 0.7, 0.6, 0xe2c488);
+          solid(x - 0.9, z - 0.45, x + 1.1, z + 0.45);
+        }
+      }
+    }
+
+    /* ABU SIMBEL : the wall of marks */
+    {
+      const g = 'abu';
+      const ROCK = 0xcf9f6a;
+      box(10, 0, 33, 18, 9, 5, ROCK, g);
+      box(10, 9, 32.6, 14, 1.2, 4, 0xc4935f, g);
+      box(10, 0, 35.56, 1.7, 3.2, 0.2, 0x3a2a20, g);
+      for (const x of [3.4, 7.2, 12.8, 16.6]) {
+        box(x, 0, 36.5, 1.6, 1.4, 1.5, 0xd8ab75, g);
+        box(x, 1.4, 36.2, 1.5, 2.5, 1.0, 0xd8ab75, g);
+        box(x, 3.9, 36.2, 1.0, 1.0, 0.9, 0xe0b684, g);
+        box(x, 4.9, 36.2, 1.15, 0.7, 1.0, 0xc4935f, g);
+      }
+      solid(1, 30.5, 19, 37.3);
+      const tiles = data.logos.slice(0, 9).map((_, i) => plane(1.7, 1.7, 2 + i * 2, 7.7, 35.53));
+      spot({
+        id: g,
+        label: 'Abu Simbel: the wall of marks',
+        toast: 'Nine marks are carved back in',
+        x: 10,
+        z: 39.4,
+        r: 4.2,
+        group: g,
+        my: 12.5,
+        onFound: () => tiles.forEach((t, i) => loadCover(t, data.logos[i].image)),
+        open: () =>
+          openPanel('Abu Simbel / logo design', (b) => {
+            b.append(el('h2', '', 'Marks made to last.'));
+            b.append(el('p', '', 'A mark has to hold up in stone, on a shop sign and at sixteen pixels. Nine from the archive.'));
+            const grid = el('div', 'logogrid');
+            data.logos.slice(0, 9).forEach((l) => {
+              const f = el('figure');
+              const cap = el('figcaption', 'mono', l.name);
+              if (l.rtl) cap.dir = 'rtl';
+              f.append(image(l.image, l.name), cap);
+              grid.append(f);
+            });
+            b.append(grid, acts(link('See the marks', '/#logo-design'), link('Behance', data.site.behance, true)));
+          }),
+      });
+    }
+
+    /* THE NUBIAN VILLAGE : Behance and the people who stop by */
+    {
+      const g = 'nubia';
+      const house = (x: number, z: number, wall: number, door: number, trim: number) => {
+        box(x, 0, z, 4.4, 2.7, 3.6, wall, g);
+        box(x, 2.7, z, 4.7, 0.25, 3.9, 0xf6f1e4, g);
+        box(x - 0.8, 2.95, z, 2.2, 0.8, 2.2, 0xf6f1e4, g);
+        box(x - 0.8, 3.75, z, 1.3, 0.5, 1.3, 0xf6f1e4, g);
+        box(x + 0.9, 0, z + 1.82, 1, 1.8, 0.1, door, g);
+        for (let i = 0; i < 6; i++) box(x - 1.9 + i * 0.72, 2.1 + (i % 2) * 0.22, z + 1.82, 0.4, 0.3, 0.08, i % 2 ? trim : 0xf6f1e4, g);
+        box(x - 1.1, 0.9, z + 1.82, 0.8, 0.8, 0.08, trim, g);
+        solid(x - 2.2, z - 1.8, x + 2.2, z + 1.9);
+      };
+      house(20, 43, 0x2f8fd0, 0xf2c230, 0xe8693a);
+      house(25.6, 42, 0xf2c230, 0x2f8fd0, 0xb5412f);
+      house(31.2, 43.6, 0xe8693a, 0x1e9e75, 0x2f8fd0);
+      palm(17, 47, 4.6);
+      palm(33.6, 48.4, 5.2);
+      // comments left on the SHAFAQ project page on Behance, quoted as written
+      const words: [string, string][] = [
+        ['Cool work!', 'Olga L.'],
+        ['impressive design', 'Sayed A.'],
+        ['تسلم ايدك ي فنان', 'Mohamed A.'],
+      ];
+      spot({
+        id: g,
+        label: 'The Nubian village',
+        toast: 'The village has its colours back',
+        x: 25.6,
+        z: 47,
+        r: 4,
+        group: g,
+        my: 7,
+        open: () =>
+          openPanel('Nubian village / Behance', (b) => {
+            b.append(el('h2', '', 'The door is always open.'));
+            b.append(el('p', '', 'New work goes up on Behance first: case studies, logofolios and experiments. People stop by and leave a word.'));
+            const ul = el('ul', 'list');
+            words.forEach(([q, who]) => {
+              const li = el('li');
+              const t = el('span', '', `“${q}”`);
+              if (/[؀-ۿ]/.test(q)) {
+                t.dir = 'rtl';
+                t.style.fontFamily = 'var(--arabic)';
+              }
+              li.append(t, el('span', 'mono', who));
+              ul.append(li);
+            });
+            b.append(ul, acts(link('Visit Behance', data.site.behance), link('LinkedIn', data.site.linkedin, true)));
+          }),
+      });
+    }
+
+    /* THE OBELISK : contact */
+    {
+      const g = 'obelisk';
+      box(2, 0, 54, 2.4, 0.6, 2.4, STONE, g);
+      box(2, 0.6, 54, 1.4, 4, 1.4, 0xe2c488, g);
+      box(2, 4.6, 54, 1.15, 4, 1.15, STONE, g);
+      box(2, 8.6, 54, 0.9, 3, 0.9, 0xe2c488, g);
+      box(2, 11.6, 54, 0.6, 0.6, 0.6, 0xe9a23b, g);
+      box(2, 12.2, 54, 0.3, 0.4, 0.3, ACID, 'always');
+      solid(0.8, 52.8, 3.2, 55.2);
+      spot({
+        id: g,
+        label: 'The obelisk',
+        toast: 'The obelisk catches the sun',
+        x: 2,
+        z: 57,
+        r: 3,
+        group: g,
+        my: 15,
+        open: () =>
+          openPanel('The obelisk / contact', (b) => {
+            b.append(el('h2', '', 'Leave your mark.'));
+            b.append(el('p', '', 'An obelisk was how you told everyone something important. Today an email does it.'));
+            b.append(acts(link('Email', 'mailto:' + data.site.email, false, false), link('WhatsApp', data.site.whatsapp, true), link('LinkedIn', data.site.linkedin, true), link('Book a session', '/services', true)));
+          }),
+      });
+    }
+
+    /* THE BALLOON : the big picture */
+    {
+      const g = 'balloon';
+      box(36, 0, 60, 1.5, 0.9, 1.5, 0x8a6a45, g);
+      for (const [sx, sz] of [[-0.65, -0.65], [0.65, -0.65], [-0.65, 0.65], [0.65, 0.65]] as const) box(36 + sx, 0.9, 60 + sz, 0.08, 2.7, 0.08, 0x3b3b40, g);
+      const env: [number, number, number, number][] = [[3, 1, 3.6, 0xe8322a], [4.4, 1.5, 4.6, 0xf5b800], [5.2, 2, 6.1, 0x2f6fb5], [4.4, 1.4, 8.1, 0xf5b800], [3, 0.9, 9.5, 0xe8322a]];
+      for (const [w, h, y, c] of env) box(36, y, 60, w, h, w, c, g);
+      solid(35.2, 59.2, 36.8, 60.8);
+      spot({
+        id: g,
+        label: 'The Luxor balloon',
+        toast: 'The balloon is ready to fly',
+        x: 36,
+        z: 63,
+        r: 3,
+        group: g,
+        my: 12.5,
+        open: () =>
+          openPanel('Luxor balloon / the big picture', (b) => {
+            b.append(el('h2', '', 'Go up. Look at all of it.'));
+            b.append(el('p', '', 'From up here it is one country, not a list of places. A brand should read the same way: one thing, from every distance.'));
+            const up = el('button', 'btn', 'Take off') as HTMLButtonElement;
+            up.type = 'button';
+            up.addEventListener('click', () => {
+              closePanel();
+              zoomFocus = [-10, 22];
+              zoomTarget = 5;
+              zoomHold = 7;
+            });
+            b.append(acts(up, link('See the portfolio', '/', true)));
+          }),
+      });
+    }
+    for (const [px, pz] of [[-6, 50], [14, 50], [-24, 56], [10, 62], [26, 56], [-10, 27]] as const) palm(px, pz, 4.8);
+
     /* three quiet secrets, off the main route */
     box(-16, 0, -58, 2.4, 0.5, 0.8, 0x8a6a45); // a bench at the quiet end of Gezira
     box(-16, 0.5, -58.35, 2.4, 0.7, 0.15, 0x8a6a45);
@@ -967,7 +1198,7 @@ export function boot() {
   const chipGroup = new THREE.Group();
   scene.add(chipGroup);
   const chipCols = [0xe8322a, 0xff6a3d, 0xf5b800, 0xd7ff00, 0x1ed760, 0x1e9e75, 0x5aa8ff, 0x3b4cff, 0x7f77dd, 0xe0218a, 0xc9a97f, 0xff5a1f];
-  const chipAt = [[-24, -7], [14, -7], [30, -7], [0, -16], [-10, -22.4], [0, -30], [8, -47], [40, 12], [-47, -6], [-58, 20], [-80, 36], [5, 12]] as const;
+  const chipAt = [[-24, -7], [14, -7], [30, -7], [0, -16], [-20, 42.5], [0, -30], [8, -47], [40, 12], [-47, -6], [-58, 20], [-80, 36], [5, 12]] as const;
   const chips = chipAt.map(([x, z], i) => {
     const m = new THREE.Mesh(chipGeo, new THREE.MeshBasicMaterial({ color: chipCols[i] }));
     m.position.set(x, 1.3, z);
@@ -1059,6 +1290,12 @@ export function boot() {
     cars.push({ g, x, z: dir === 1 ? -5.6 : -8.4, dir, v: max, max, honkT: 0 });
   };
   let waiter: Walker | null = null;
+  const train = new THREE.Group();
+  const TRAIN_N = 11;
+  const TRAIN_S = 52;
+  let trainZ = TRAIN_N;
+  let riding = false;
+  let canBoard = false;
   const tea = new THREE.Mesh(unit, new THREE.MeshLambertMaterial({ color: 0xc8752a }));
   const cat = { g: new THREE.Group(), x: 6, z: 13, tx: 6, tz: 13, wait: 1, follow: 0, cool: 0, met: false, ph: 0 };
   const pigeons: THREE.Mesh[] = [];
@@ -1119,8 +1356,37 @@ export function boot() {
     stroll(16, 12, 0x7f77dd, [3, 0.5, 33, 20], 0);
     stroll(-4, 3, 0xe0218a, [-9, 0.5, 8, 6], 1, { hair: 0x4a2f1f });
     stroll(24, 4, 0x1b1b1e, [13, 0.5, 33, 14], 2, { skin: 0x9c6b47 });
-    stroll(-28, 6, 0x5aa8ff, [-44, 0.5, -19, 18], 3);
-    stroll(-36, 14, 0xc9a97f, [-44, 6, -20, 20], 0, { hat: 0xf2efe6 });
+    stroll(-28, 6, 0x5aa8ff, [-34, 0.5, -19, 18], 3);
+    stroll(-30, 14, 0xc9a97f, [-34, 6, -20, 20], 0, { hat: 0xf2efe6 });
+    walker([[-27, 36.2], [-13, 36.2]], 0xe9a23b, [
+      ['Five columns. Take one out and the roof comes down.', 'That is why strategy goes in first.'],
+      ['They knew what they stood for before they cut a single stone.', 'Positioning. It is older than it sounds.'],
+    ], 1.6, { hat: 0xf6f1e4 });
+    walker([[4, 40.6], [16, 40.6]], 0x7f77dd, [
+      ['Three thousand years and the mark still reads.', 'That is the brief for every logo.'],
+      ['Which mark is your favourite?', 'The next one.'],
+    ], 1.5, { skin: 0xe0b08a, hat: 0xd9c79c });
+    walker([[22, 50]], 0x1e9e75, [
+      ['We paint every house a different colour.', 'And it still reads as one village. That is a system.'],
+      crowd[2],
+    ], 1.7, { skin: 0x7a5236 }, [16, 46.4, 34, 54]);
+    walker([[-30, 50]], 0xf4f1ea, [
+      ['The sleeper train takes nine hours. Bring a book.', 'I brought a brand book.'],
+      crowd[0],
+    ], 1.4, { skin: 0x9c6b47, hat: 0xb5412f }, [-35, 46.5, -22, 58]);
+
+    partsTo(train, [
+      [2.2, 2.4, 5, 0x2f5d50, 0, 0.3, 3.2],
+      [2.26, 0.3, 5, 0xe9e2cf, 0, 1.0, 3.2],
+      [2.26, 0.7, 1.3, 0x2c3440, 0, 1.75, 4.6],
+      [1.2, 0.5, 0.6, 0xd94f30, 0, 0.3, 5.9],
+      [2.2, 2.3, 6.4, 0x2f5d50, 0, 0.3, -3],
+      [2.26, 0.3, 6.4, 0xe9e2cf, 0, 1.0, -3],
+      [2.26, 0.7, 5.6, 0x2c3440, 0, 1.6, -3],
+      [2.4, 0.3, 12, 0x1c1c1f, 0, 0, 0],
+    ]);
+    train.position.set(-40, 0, trainZ);
+    scene.add(train);
     stroll(-64, 6, 0xff6a3d, [-70, 2, -50, 12], 1, { skin: 0xe0b08a });
 
     addCar(-40, 1, carParts(0xf2f2ee, 0x1b1b1e), 7);
@@ -1195,6 +1461,26 @@ export function boot() {
       waiter.path = [[-9.4, 6.8], [-14.2, 9.6], [-9.4, 6.8]];
       waiter.i = 1;
     }
+  };
+  const fadeEl = $('[data-fade]');
+  const board = () => {
+    const south = trainZ === TRAIN_N;
+    riding = true;
+    target = null;
+    fadeEl.textContent = south ? 'The sleeper train to Luxor. Nine hours, one glass of tea.' : 'Back to Cairo. You slept through Minya.';
+    fadeEl.classList.add('on');
+    audio.honk(0.09, true);
+    setTimeout(() => {
+      trainZ = south ? TRAIN_S : TRAIN_N;
+      train.position.z = trainZ;
+      pos.set(-37.3, 0, trainZ + 1);
+      facing = Math.PI / 2;
+    }, 900);
+    setTimeout(() => {
+      fadeEl.classList.remove('on');
+      riding = false;
+      audio.honk(0.07);
+    }, 3300);
   };
   const stand = () => {
     seated = false;
@@ -1685,14 +1971,14 @@ export function boot() {
   const cineEl = $('[data-cine]');
   const cardEl = $('[data-cine-card]');
   const cine = { on: false, t: 0, step: -1, twist: false };
-  const TWIST = 16.2;
-  const CINE_END = 20.6;
+  const TWIST = 19.4;
+  const CINE_END = 24.4;
   const CARDS: [number, string, string][] = [
     [0.8, 'In a city that lost its colour.', ''],
-    [4.4, 'Where every sign says nothing.', ''],
-    [8.0, 'One man.', ''],
-    [10.2, 'One box.', ''],
-    [12.6, 'Cairo, unbranded.', 'title'],
+    [5.4, 'Where every sign says nothing.', ''],
+    [10.0, 'One man.', ''],
+    [12.8, 'One box.', ''],
+    [15.6, 'Cairo, unbranded.', 'title'],
     [TWIST, 'Okay. He is quite small. And he brought coffee.', 'funny'],
   ];
   let hop = 0;
@@ -1739,6 +2025,8 @@ export function boot() {
       cine.step++;
       cardEl.className = 'cine-card ' + next[2];
       cardEl.textContent = next[1];
+      const after = CARDS[cine.step + 1];
+      cardEl.style.animationDuration = next[2] ? '' : `${(after ? after[0] : CINE_END) - next[0] - 0.15}s`;
       void cardEl.offsetWidth;
       cardEl.classList.add('in');
       if (next[2] === 'funny') twist();
@@ -1749,9 +2037,9 @@ export function boot() {
   /** Where the trailer camera looks: [x, z, zoom]. */
   const cineCam = (): [number, number, number] => {
     const t = cine.t;
-    if (t < 8) return [-30 + t * 4.4, -7, 1.12];
-    if (t < 12.6) return [-66, 30, 1.75 - (t - 8) * 0.06];
-    if (t < TWIST) return [-18, -14, 4.3 - (t - 12.6) * 0.08];
+    if (t < 10) return [-30 + t * 3.6, -7, 1.12];
+    if (t < 15.6) return [-66, 30, 1.75 - (t - 10) * 0.05];
+    if (t < TWIST) return [-14, 2, 5 - (t - 15.6) * 0.08];
     return [pos.x, pos.z, 0.5];
   };
 
@@ -1759,11 +2047,12 @@ export function boot() {
   const stops: [string, string, number, number][] = [
     ['Talaat Harb plaza', 'Start, kiosk and the ahwa', 0, 2.5],
     ['Downtown', 'Five brand identities', 0, -7],
-    ['Corniche', 'The Nile and a camera', 0, -22.5],
-    ['Gezira', 'Cairo Tower and the billboards', 0, -42],
+    ['Qasr El Nil bridge', 'The Nile and a fisherman', 0, -27],
+    ['Gezira', 'Cairo Tower, the billboards and a camera', 0, -42],
     ['Calligraphy alley', 'Eight Arabic type posters', 39.5, -4],
     ['Print house', 'Where it started', -41, -7],
     ['Giza', 'Three pyramids, three steps', -56, 16],
+    ['Luxor and Aswan', 'Karnak, Abu Simbel, the Nubian village', -30, 49],
   ];
   $('[data-metro]').addEventListener('click', () =>
     openPanel('Cairo metro / fast travel', (b) => {
@@ -1783,6 +2072,23 @@ export function boot() {
         ul.append(li);
       });
       b.append(ul);
+      const again = el('button', 'btn ghost', 'Start over') as HTMLButtonElement;
+      again.type = 'button';
+      let sure = false;
+      again.addEventListener('click', () => {
+        if (!sure) {
+          sure = true;
+          again.textContent = 'Tap again to erase all progress';
+          return;
+        }
+        try {
+          localStorage.removeItem(SAVE_KEY);
+        } catch {
+          /* nothing saved */
+        }
+        location.reload();
+      });
+      b.append(el('p', 'q', 'Finished, or want a clean timed run? This wipes your progress, your shop sign and your time on this device.'), acts(again));
     }),
   );
 
@@ -1795,6 +2101,7 @@ export function boot() {
     if (panelOpen) return;
     if (seated) stand();
     else if (canSit) sit();
+    else if (canBoard && !riding) board();
     else if (near) near.open();
   };
   let canSit = false;
@@ -1855,7 +2162,8 @@ export function boot() {
   /* ------------------------------------------------------------------ movement */
   const R = 0.45;
   const hits = (x: number, z: number) => {
-    if (x < -98 || x > 48 || z < -61.5 || z > 53) return true;
+    if (x < -98 || x > 48 || z < -61.5 || z > 66) return true;
+    if (Math.abs(x + 40) < 1.2 + R && z > trainZ - 6.4 - R && z < trainZ + 6.3 + R) return true;
     for (const c of colliders) if (x > c[0] - R && x < c[2] + R && z > c[1] - R && z < c[3] + R) return true;
     return false;
   };
@@ -1906,7 +2214,7 @@ export function boot() {
     last = now;
     clock += dt;
     if (cine.on) stepCine(Math.min(0.25, (now - last0) / 1000));
-    const active = running && !panelOpen;
+    const active = running && !panelOpen && !riding;
     if (active) {
       dayT += dt;
       if (!outroShown && !untimed) playMs += dt * 1000;
@@ -1921,7 +2229,7 @@ export function boot() {
     /* input to world direction (the camera looks from the south-east) */
     let ix = 0;
     let iy = 0;
-    if (running && !panelOpen) {
+    if (running && !panelOpen && !riding) {
       if (keys.has('w') || keys.has('arrowup')) iy += 1;
       if (keys.has('s') || keys.has('arrowdown')) iy -= 1;
       if (keys.has('d') || keys.has('arrowright')) ix += 1;
@@ -2043,8 +2351,9 @@ export function boot() {
     updateLife(dt, night, active);
     if (!cine.on) audio.update(pos.x, pos.z, dt, night);
     canSit = !seated && Math.hypot(SEAT[0] - pos.x, SEAT[1] - pos.z) < 1.9;
-    if ((near || canSit || seated) && running && !panelOpen) {
-      const label = seated ? 'Stand up' : canSit ? 'Sit down for tea and shisha' : `Open: ${near!.label}`;
+    canBoard = !seated && !canSit && Math.abs(pos.x + 37.4) < 1.6 && Math.abs(pos.z - trainZ) < 5.5;
+    if ((near || canSit || seated || canBoard) && running && !panelOpen && !riding) {
+      const label = seated ? 'Stand up' : canSit ? 'Sit down for tea and shisha' : canBoard ? (trainZ === TRAIN_N ? 'Board the sleeper train to Luxor' : 'Board the sleeper train to Cairo') : `Open: ${near!.label}`;
       if (promptEl.dataset.l !== label) {
         promptEl.dataset.l = label;
         promptEl.textContent = '';
@@ -2102,8 +2411,8 @@ export function boot() {
         zoom += (zoomTarget - zoom) * Math.min(1, dt * 2.2);
         fitCam();
       }
-      fx = zoom > 1.05 ? THREE.MathUtils.lerp(pos.x, -18, Math.min(1, (zoom - 1) / 3)) : pos.x;
-      fz = zoom > 1.05 ? THREE.MathUtils.lerp(pos.z, -14, Math.min(1, (zoom - 1) / 3)) : pos.z;
+      fx = zoom > 1.05 ? THREE.MathUtils.lerp(pos.x, zoomFocus[0], Math.min(1, (zoom - 1) / 3)) : pos.x;
+      fz = zoom > 1.05 ? THREE.MathUtils.lerp(pos.z, zoomFocus[1], Math.min(1, (zoom - 1) / 3)) : pos.z;
     }
     camera.position.set(fx + CAM_OFF.x, CAM_OFF.y, fz + CAM_OFF.z);
     camera.lookAt(fx, 0, fz);
@@ -2156,7 +2465,7 @@ export function boot() {
       else startCine();
     });
     requestAnimationFrame(frame);
-    if (import.meta.env.DEV) (window as unknown as Record<string, unknown>).__cairo = { pos, spots, find, chips, cine, endCine, sit, cars, secrets, state: () => ({ playMs, finalMs, seated, outroShown, running }), tp: (x: number, z: number) => pos.set(x, 0, z) };
+    if (import.meta.env.DEV) (window as unknown as Record<string, unknown>).__cairo = { pos, spots, find, chips, cine, endCine, sit, board, cars, secrets, state: () => ({ playMs, finalMs, seated, outroShown, running }), tp: (x: number, z: number) => pos.set(x, 0, z) };
   };
   const fonts = (document as Document & { fonts?: FontFaceSet }).fonts;
   if (fonts) {

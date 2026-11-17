@@ -5,7 +5,7 @@
  * All project, film, type and service content is read from src/data, so the game
  * stays in sync with the rest of the site. Game code: src/scripts/play.ts
  */
-import { SITE, TYPE_WORKS, FILMS, EXPERIENCE } from '../data/site';
+import { SITE, TYPE_WORKS, FILMS, EXPERIENCE, CHAIN, PRACTICE, LOGOS } from '../data/site';
 import { PROJECTS, ORDER } from '../data/projects';
 import { SERVICES, PROCESS, price } from '../data/services';
 
@@ -45,6 +45,9 @@ const data = {
   process: PROCESS,
   services: SERVICES.map((s) => ({ id: s.id, name: s.name, from: price(s.from), delivery: s.delivery, summary: s.summary })),
   experience: EXPERIENCE,
+  chain: CHAIN,
+  practice: PRACTICE,
+  logos: LOGOS.map((l) => ({ name: l.name, rtl: 'rtl' in l && !!l.rtl, image: img(l.id) })),
 };
 ---
 <!doctype html>
@@ -160,6 +163,13 @@ const data = {
       .board .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .board .tm { font-family: var(--mono); text-align: right; }
 
+      .fade { position: fixed; inset: 0; z-index: 26; background: #000; color: var(--bone); display: flex; align-items: center; justify-content: center; text-align: center; padding: 24px; font-family: var(--display); font-size: clamp(1.4rem, 4.6vw, 2.6rem); line-height: 1.15; opacity: 0; pointer-events: none; transition: opacity 0.7s; }
+      .fade.on { opacity: 1; pointer-events: auto; }
+      .logogrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 4px 0 6px; }
+      .logogrid figure { margin: 0; }
+      .logogrid .media { aspect-ratio: 1; }
+      .logogrid figcaption { padding-top: 5px; color: var(--bone-2); font-size: 10px; }
+
       .cine { position: fixed; inset: 0; z-index: 25; display: none; pointer-events: none; overflow: hidden; }
       .cine.on { display: block; }
       .cine::before, .cine::after { content: ''; position: absolute; left: 0; right: 0; height: 13vh; background: #000; z-index: 2; }
@@ -167,9 +177,9 @@ const data = {
       .cine::after { bottom: 0; }
       .cine .vig { position: absolute; inset: 0; background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 30%, rgba(0, 0, 0, 0.82) 100%); }
       .cine.light .vig { opacity: 0; }
-      .cine-card { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(90vw, 1100px); text-align: center; font-family: var(--display); font-size: clamp(1.4rem, 4.4vw, 3.2rem); letter-spacing: 0.14em; text-transform: uppercase; color: var(--bone); opacity: 0; text-shadow: 0 2px 34px #000, 0 0 4px #000; z-index: 3; }
+      .cine-card { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(86vw, 1100px); text-align: center; text-wrap: balance; font-family: var(--display); font-size: clamp(1.25rem, 4.2vw, 3.2rem); line-height: 1.25; letter-spacing: 0.1em; text-transform: uppercase; color: var(--bone); opacity: 0; text-shadow: 0 2px 34px #000, 0 0 4px #000; z-index: 3; }
       .cine-card.in { animation: cardin 3.4s cubic-bezier(0.2, 0.7, 0.2, 1) forwards; }
-      @keyframes cardin { 0% { opacity: 0; letter-spacing: 0.34em; filter: blur(8px); } 16% { opacity: 1; filter: blur(0); } 84% { opacity: 1; } 100% { opacity: 0; letter-spacing: 0.1em; } }
+      @keyframes cardin { 0% { opacity: 0; filter: blur(8px); transform: translate(-50%, -50%) scale(1.06); } 12% { opacity: 1; filter: blur(0); transform: translate(-50%, -50%) scale(1.03); } 90% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1); } }
       .cine-card.title { font-size: clamp(2.8rem, 11vw, 9rem); letter-spacing: -0.02em; line-height: 0.88; text-transform: none; }
       .cine-card.title.in { animation: slam 3.5s cubic-bezier(0.2, 0.9, 0.2, 1) forwards; }
       @keyframes slam { 0% { opacity: 0; transform: translate(-50%, -50%) scale(1.7); } 7% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 100% { opacity: 1; transform: translate(-50%, -50%) scale(1.04); } }
@@ -242,6 +252,7 @@ const data = {
     <button class="prompt mono" type="button" data-prompt></button>
     <div class="say" data-say aria-live="polite"></div>
     <div class="say me" data-say-me></div>
+    <div class="fade" data-fade aria-live="polite"></div>
 
     <div class="cine" data-cine aria-hidden="true">
       <div class="vig"></div>

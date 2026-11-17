@@ -480,6 +480,7 @@ export function boot() {
   });
   const image = (src: string, alt: string) => {
     const i = el('img', 'media') as HTMLImageElement;
+    i.decoding = 'async';
     i.src = src;
     i.alt = alt;
     i.loading = 'lazy';
@@ -903,7 +904,7 @@ export function boot() {
           r: 3.2,
           group: bg,
           my: 10,
-          onFound: () => loadContain(face, p.image, 0.06),
+          onFound: () => loadCover(face, p.image),
           open: () =>
             openPanel(`Billboard / ${p.kind}`, (b) => {
               const h = el('h2', '', p.title);
@@ -1819,10 +1820,11 @@ export function boot() {
   ];
   const secretsGot = new Set<string>();
   let toastT = 0;
-  const toast = (t: string) => {
+  /** Stays up long enough to read: at least 3.2 s, longer for longer lines, or the time given. */
+  const toast = (t: string, secs = 0) => {
     toastEl.textContent = t;
     toastEl.classList.add('on');
-    toastT = 2.6;
+    toastT = secs || Math.max(3.2, t.length * 0.085);
   };
   let outroShown = false;
   const save = () => {
@@ -2394,7 +2396,7 @@ export function boot() {
         if (!secretsGot.has(sc.id) && Math.hypot(sc.x - pos.x, sc.z - pos.z) < sc.r) {
           secretsGot.add(sc.id);
           burst(sc.x, 1.5, sc.z, ACID, 24);
-          toast(sc.toast);
+          toast(sc.toast, 7);
           audio.chime();
           save();
           refresh();

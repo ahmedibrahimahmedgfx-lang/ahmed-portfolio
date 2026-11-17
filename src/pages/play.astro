@@ -1,0 +1,206 @@
+---
+/**
+ * /play : "Cairo, Unbranded". A small voxel walk through Cairo where every place
+ * the visitor discovers gets its colour and identity back.
+ * All project, film, type and service content is read from src/data, so the game
+ * stays in sync with the rest of the site. Game code: src/scripts/play.ts
+ */
+import { SITE, TYPE_WORKS, FILMS, EXPERIENCE } from '../data/site';
+import { PROJECTS, ORDER } from '../data/projects';
+import { SERVICES, PROCESS, price } from '../data/services';
+
+const img = (id: string, w = 720) => `/media/img/${id}-${w}.webp`;
+
+const data = {
+  site: {
+    email: SITE.email,
+    whatsapp: SITE.whatsapp,
+    behance: SITE.behance,
+    linkedin: SITE.linkedin,
+  },
+  projects: ORDER.map((slug) => {
+    const p = PROJECTS[slug];
+    return {
+      slug: p.slug,
+      title: p.title,
+      track: p.track,
+      kind: p.kind,
+      tagline: p.tagline,
+      image: img(p.cover),
+      bg: p.tone.bg,
+      ink: p.tone.ink,
+      accent: p.tone.accent,
+      href: `/work/${p.slug}`,
+    };
+  }),
+  type: TYPE_WORKS.map((t) => ({ slug: t.slug, title: t.title, kind: t.kind, text: t.text, image: img(t.images[0]) })),
+  films: FILMS.filter((f) => f.id === 'mini-showreel' || f.id === 'the-question').map((f) => ({
+    id: f.id,
+    title: f.title,
+    kind: f.kind,
+    text: f.text,
+    src: `/media/motion/${f.film}-${f.filmSize}.mp4`,
+    poster: `/media/motion/${f.poster}.webp`,
+  })),
+  process: PROCESS,
+  services: SERVICES.map((s) => ({ id: s.id, name: s.name, from: price(s.from), delivery: s.delivery, summary: s.summary })),
+  experience: EXPERIENCE,
+};
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+    <title>Cairo, Unbranded | Ahmed Ibrahim</title>
+    <meta name="description" content="Walk through a grey Cairo as Ahmed Ibrahim and give every place its identity back. A playable portfolio." />
+    <meta name="theme-color" content="#0b090e" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta property="og:title" content="Cairo, Unbranded | Ahmed Ibrahim" />
+    <meta property="og:description" content="A playable portfolio. Walk through Cairo and give every place its identity back." />
+    <meta property="og:image" content="/og.jpg" />
+    <link rel="preload" href="/fonts/albertus-medium.woff2" as="font" type="font/woff2" crossorigin />
+    <style is:global>
+      @font-face { font-family: 'Albertus'; src: url('/fonts/albertus-medium.woff2') format('woff2'); font-weight: 400 500; font-display: swap; }
+      @font-face { font-family: 'Archivo'; src: url('/fonts/archivo-wdth-latin.woff2') format('woff2-variations'); font-weight: 100 900; font-stretch: 62% 125%; font-display: swap; }
+      @font-face { font-family: 'Plex Mono'; src: url('/fonts/plex-mono-400.woff2') format('woff2'); font-weight: 400; font-display: swap; }
+      @font-face { font-family: 'Plex Mono'; src: url('/fonts/plex-mono-500.woff2') format('woff2'); font-weight: 500; font-display: swap; }
+      @font-face { font-family: 'Alexandria'; src: url('/fonts/alexandria-arabic.woff2') format('woff2-variations'); font-weight: 100 900; font-display: swap; unicode-range: U+0600-06FF, U+0750-077F, U+FB50-FDFF, U+FE70-FEFF; }
+      :root {
+        --ink: #0b090e; --ink-2: #121016; --rule: #2a282e; --bone: #ece8df; --bone-2: #a29e96; --acid: #d7ff00;
+        --display: 'Albertus', 'Optima', serif; --sans: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+        --mono: 'Plex Mono', ui-monospace, Menlo, monospace; --arabic: 'Alexandria', 'Geeza Pro', sans-serif;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; height: 100%; overflow: hidden; background: var(--ink); color: var(--bone); font-family: var(--sans); -webkit-font-smoothing: antialiased; overscroll-behavior: none; }
+      a { color: inherit; }
+      button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+      .mono { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; }
+      #stage { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; outline: none; }
+
+      .hud { position: fixed; left: 0; right: 0; top: 0; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: max(14px, env(safe-area-inset-top)) 16px 0; pointer-events: none; z-index: 5; }
+      .hud > * { pointer-events: auto; }
+      .hud .title { background: var(--ink); padding: 8px 12px; line-height: 1.5; }
+      .hud .title b { color: var(--acid); font-weight: 500; }
+      .hud .right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+      .meter { background: var(--ink); padding: 8px 12px; min-width: 190px; }
+      .meter .row { display: flex; justify-content: space-between; gap: 16px; }
+      .meter .bar { height: 3px; background: var(--rule); margin-top: 7px; }
+      .meter .bar i { display: block; height: 100%; width: 0; background: var(--acid); transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1); }
+      .hud-btns { display: flex; gap: 6px; }
+      .hud-btns a, .hud-btns button { background: var(--ink); padding: 8px 12px; text-decoration: none; }
+      .hud-btns a:hover, .hud-btns button:hover { background: var(--acid); color: var(--ink); }
+
+      .prompt { position: fixed; left: 50%; bottom: max(26px, env(safe-area-inset-bottom)); transform: translate(-50%, 20px); opacity: 0; pointer-events: none; transition: opacity 0.2s, transform 0.2s; z-index: 6; background: var(--acid); color: var(--ink); padding: 13px 18px; font-weight: 500; white-space: nowrap; max-width: calc(100vw - 32px); overflow: hidden; text-overflow: ellipsis; }
+      .prompt.on { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+      .prompt kbd { font: inherit; border: 1px solid currentColor; padding: 1px 5px; margin-right: 8px; }
+      .hint { position: fixed; left: 16px; bottom: max(18px, env(safe-area-inset-bottom)); z-index: 4; color: var(--bone); background: var(--ink); padding: 8px 12px; transition: opacity 0.6s; }
+      .toast { position: fixed; left: 50%; top: 84px; transform: translateX(-50%); z-index: 7; background: var(--bone); color: var(--ink); padding: 9px 14px; opacity: 0; transition: opacity 0.3s; pointer-events: none; white-space: nowrap; }
+      .toast.on { opacity: 1; }
+      @media (max-width: 720px) { .hint { display: none; } .meter { min-width: 150px; } .toast { top: 118px; } }
+
+      .scrim { position: fixed; inset: 0; z-index: 20; background: rgba(11, 9, 14, 0.72); display: none; align-items: center; justify-content: center; padding: 16px; }
+      .scrim.on { display: flex; }
+      .panel { background: var(--ink); border: 1px solid var(--rule); width: min(560px, 100%); max-height: min(86vh, 760px); overflow: auto; }
+      .panel .top { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--rule); position: sticky; top: 0; background: var(--ink); z-index: 1; }
+      .panel .top button:hover { color: var(--acid); }
+      .panel .media { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; display: block; background: var(--ink-2); }
+      .panel video.media { aspect-ratio: auto; max-height: 56vh; object-fit: contain; background: #000; }
+      .panel .body { padding: 18px 16px 20px; }
+      .panel h2 { font-family: var(--display); font-weight: 500; font-size: clamp(2rem, 7vw, 3.2rem); line-height: 0.95; margin: 6px 0 12px; letter-spacing: -0.01em; }
+      .panel h2[dir='rtl'] { font-family: var(--arabic); font-weight: 700; }
+      .panel p { margin: 0 0 12px; line-height: 1.55; color: var(--bone); font-size: 0.98rem; }
+      .panel p.q { color: var(--bone-2); }
+      .panel .acts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+      .btn { display: inline-block; padding: 12px 16px; background: var(--acid); color: var(--ink); text-decoration: none; font-weight: 500; }
+      .btn.ghost { background: none; color: var(--bone); border: 1px solid var(--rule); }
+      .btn:hover { filter: brightness(1.08); }
+      .list { list-style: none; padding: 0; margin: 0 0 4px; border-top: 1px solid var(--rule); }
+      .list li { display: flex; justify-content: space-between; gap: 14px; padding: 10px 0; border-bottom: 1px solid var(--rule); font-size: 0.95rem; }
+      .list li span:last-child { color: var(--bone-2); text-align: right; }
+      .list li b { font-weight: 500; }
+      .list button { text-align: left; width: 100%; display: flex; justify-content: space-between; gap: 14px; }
+      .list button:hover b { color: var(--acid); }
+
+      /* the newspaper panel */
+      .paper { background: #e9e2cf; color: #17140f; border: 0; }
+      .paper .top { background: #e9e2cf; border-color: #17140f; }
+      .paper .top button:hover { color: #8a1c10; }
+      .paper .body { padding-top: 14px; }
+      .paper .mast { font-family: var(--display); font-size: clamp(2rem, 8vw, 3.3rem); text-align: center; line-height: 1; border-bottom: 3px double #17140f; padding-bottom: 10px; margin-bottom: 8px; }
+      .paper .dateline { display: flex; justify-content: space-between; border-bottom: 1px solid #17140f; padding-bottom: 6px; margin-bottom: 14px; }
+      .paper h2 { font-size: clamp(1.7rem, 6.4vw, 2.6rem); }
+      .paper p { color: #17140f; }
+      .paper .list, .paper .list li { border-color: #17140f55; }
+      .paper .list li span:last-child { color: #4b463c; }
+      .paper .btn { background: #17140f; color: #e9e2cf; }
+      .paper .btn.ghost { background: none; color: #17140f; border-color: #17140f; }
+
+      .intro, .outro { position: fixed; inset: 0; z-index: 30; background: var(--ink); display: flex; flex-direction: column; justify-content: center; padding: 24px clamp(18px, 6vw, 84px); }
+      .outro { display: none; background: rgba(11, 9, 14, 0.9); }
+      .outro.on { display: flex; }
+      .intro.off { display: none; }
+      .intro h1, .outro h1 { font-family: var(--display); font-weight: 500; font-size: clamp(3.2rem, 13vw, 11rem); line-height: 0.86; margin: 14px 0 18px; letter-spacing: -0.02em; }
+      .intro h1 span, .outro h1 span { color: #5c5a60; }
+      .outro h1 span { color: var(--acid); }
+      .intro p, .outro p { max-width: 46ch; line-height: 1.55; margin: 0 0 22px; font-size: 1.05rem; }
+      .intro .keys { color: var(--bone-2); margin-top: 22px; line-height: 1.9; }
+      .start { align-self: flex-start; padding: 16px 26px; background: var(--acid); color: var(--ink); font-weight: 500; font-size: 1rem; }
+      .start[disabled] { opacity: 0.5; cursor: progress; }
+      .noscript { padding: 24px; }
+    </style>
+  </head>
+  <body>
+    <canvas id="stage" tabindex="0" aria-label="Cairo, Unbranded. A voxel walk through Cairo."></canvas>
+
+    <div class="hud mono">
+      <div class="title">Ahmed Ibrahim /<br /><b>Cairo, unbranded</b></div>
+      <div class="right">
+        <div class="meter" aria-live="polite">
+          <div class="row"><span>City branded</span><span data-pct>0%</span></div>
+          <div class="bar"><i data-bar></i></div>
+          <div class="row" style="margin-top:7px"><span>Swatches</span><span data-chips>0/0</span></div>
+        </div>
+        <div class="hud-btns">
+          <button type="button" data-metro>Metro map</button>
+          <a href="/" data-exit>Exit</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="hint mono" data-hint>WASD / arrows to walk · Shift to run · click to walk there</div>
+    <div class="toast mono" data-toast></div>
+    <button class="prompt mono" type="button" data-prompt></button>
+
+    <div class="scrim" data-scrim role="dialog" aria-modal="true" aria-label="Details">
+      <div class="panel" data-panel></div>
+    </div>
+
+    <div class="outro" data-outro>
+      <div class="mono">100% / every place has its identity back</div>
+      <h1>Cairo, <span>branded.</span></h1>
+      <p>That is the job. A place, a product or a company is already something. I find out what, then build the identity that shows it.</p>
+      <div class="acts" style="display:flex;gap:8px;flex-wrap:wrap">
+        <a class="btn" href="/services">Book a session</a>
+        <a class="btn ghost" href="/">See the portfolio</a>
+        <button class="btn ghost" type="button" data-outro-close>Keep walking</button>
+      </div>
+    </div>
+
+    <div class="intro" data-intro>
+      <div class="mono">A playable portfolio / Ahmed Ibrahim</div>
+      <h1>Cairo,<br /><span>unbranded.</span></h1>
+      <p>The city has lost its colour. Walk it, find the work, and every place you discover gets its identity back.</p>
+      <button class="start" type="button" data-start disabled>Loading the city</button>
+      <div class="keys mono">Walk: WASD, arrows or drag · Run: Shift · Open: E, Enter or tap the yellow button</div>
+    </div>
+
+    <noscript><div class="noscript">This page is a small game and needs JavaScript. <a href="/">Go to the portfolio</a>.</div></noscript>
+
+    <script type="application/json" id="play-data" set:html={JSON.stringify(data)} />
+    <script>
+      import { boot } from '../scripts/play';
+      boot();
+    </script>
+  </body>
+</html>

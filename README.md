@@ -108,7 +108,17 @@ Videos: `python3 scripts/media/build_media.py --only video` (needs ffmpeg). Loop
 
 The page has no backend. It builds the brief in the browser and opens the visitor's email app or WhatsApp with the text filled in, using `email` and `whatsapp` from `src/data/site.ts`. A link like `/services?service=brand-identity` opens with that service selected.
 
-## 9. Behaviour notes
+## 9. The game: /play ("Cairo, Unbranded")
+
+A small voxel walk through Cairo. The city starts grey and each place the visitor discovers gets its colour and identity back.
+
+- Page: `src/pages/play.astro` (HUD, panels, intro and end screens, all text for those).
+- Game: `src/scripts/play.ts` (the city, the character, movement, discovery). It uses `three`, which is only loaded on `/play`.
+- Content is read from `src/data`, so the game follows the site: the five downtown shops are the brand identities in `ORDER`, the three billboards are the art direction projects, the alley shows the first eight `TYPE_WORKS`, the pyramids are `PROCESS`, the ahwa lists `SERVICES`, the kiosk lists `EXPERIENCE`, and the two cameras play the Mini Showreel and The Question from `FILMS`.
+- To move a place or change its panel text, search for its name in the `build` function in `play.ts`.
+- Progress is saved in the visitor's browser only (localStorage). There is no backend.
+
+## 10. Behaviour notes
 
 - **Reduced motion**: no smooth transitions, parallax, pinning or autoplaying previews. All content stays visible.
 - **Touch devices**: no custom cursor or hover previews; titles show their image inline; valU reveals on scroll, Spotify compares by drag.
